@@ -22,8 +22,7 @@ public class Album {
 
     private Long trackCount;
 
-    @OneToMany
-    @JoinColumn(name="song_id")
+    @OneToMany(mappedBy = "album")
     private List<Song> song;
 
     @ManyToOne

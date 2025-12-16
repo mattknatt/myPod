@@ -31,6 +31,9 @@ public class PersistenceManager {
 
         emf = cfg.createEntityManagerFactory();
 
+        //From CodeRabbit: Register a shutdown hook to properly release database connections on JVM exit.
+        Runtime.getRuntime().addShutdownHook(new Thread(emf::close));
+
     }
 
     public static EntityManagerFactory getEntityManagerFactory() {

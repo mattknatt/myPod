@@ -17,8 +17,7 @@ public class Artist {
 
     private String country;
 
-    @OneToMany
-    @JoinColumn(name="album_id")
+    @OneToMany(mappedBy = "artist")
     private List<Album> album;
 
     public Long getArtistId() {
