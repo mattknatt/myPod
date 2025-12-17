@@ -1,6 +1,7 @@
 package org.example.entity;
 
 import jakarta.persistence.*;
+import org.example.ItunesDTO;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.util.List;
@@ -19,6 +20,18 @@ public class Artist {
 
     @OneToMany(mappedBy = "artist")
     private List<Album> album;
+
+    protected Artist (){}
+
+    public Artist (Long artistId, String name, String country) {
+        this.artistId = artistId;
+        this.name = name;
+        this.country = country;
+    }
+
+    public static Artist fromDTO(ItunesDTO dto) {
+        return new Artist(dto.artistId(), dto.artistName(), dto.country());
+    }
 
     public Long getArtistId() {
         return artistId;

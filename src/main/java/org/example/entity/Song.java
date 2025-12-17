@@ -1,6 +1,7 @@
 package org.example.entity;
 
 import jakarta.persistence.*;
+import org.example.ItunesDTO;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.time.LocalDate;
@@ -25,6 +26,19 @@ public class Song {
 
     @ManyToMany(mappedBy = "songs")
     private Set<Playlist> playlist = new HashSet<>();
+
+    protected Song() {}
+
+    public Song(Long songId, String title, Long length) {
+        this.songId = songId;
+        this.title = title;
+        this.length = length;
+
+    }
+
+    public static Song fromDTO(ItunesDTO dto) {
+        return new Song(dto.trackId(), dto.trackName(), dto.trackTimeMillis());
+    }
 
     public Set<Playlist> getPlaylist() {
         return playlist;
@@ -83,6 +97,14 @@ public class Song {
         return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
     }
 
+
     //Todo: Generate toString?
 
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "(" +
+            "songId = " + songId + ", " +
+            "title = " + title + ", " +
+            "length = " + length + ")";
+    }
 }

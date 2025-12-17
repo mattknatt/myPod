@@ -1,6 +1,7 @@
 package org.example.entity;
 
 import jakarta.persistence.*;
+import org.example.ItunesDTO;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.time.LocalDate;
@@ -18,7 +19,7 @@ public class Album {
 
     private String genre;
 
-    private LocalDate year;
+    private int year;
 
     private Long trackCount;
 
@@ -28,6 +29,22 @@ public class Album {
     @ManyToOne
     @JoinColumn(name="artist_id")
     private Artist artist;
+
+    protected Album (){}
+
+    public Album(Long albumId, String name, String genre, int year, Long trackCount) {
+        this.albumId = albumId;
+        this.name = name;
+        this.genre = genre;
+        this.year = year;
+        this.trackCount = trackCount;
+    }
+
+    public static Album fromDTO(ItunesDTO dto) {
+        return new Album(dto.collectionId(), dto.collectionName(), dto.primaryGenreName(), dto.releaseYear(), dto.trackCount());
+    }
+
+
 
     public Long getAlbumId() {
         return albumId;
@@ -53,11 +70,11 @@ public class Album {
         this.genre = genre;
     }
 
-    public LocalDate getYear() {
+    public int getYear() {
         return year;
     }
 
-    public void setYear(LocalDate year) {
+    public void setYear(int year) {
         this.year = year;
     }
 

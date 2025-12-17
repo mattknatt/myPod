@@ -2,6 +2,16 @@ package org.example;
 
 public class App {
     public static void main(String[] args) {
-        System.out.println("Hello There!");
+        PersistenceManager pm;
+        ItunesApiClient apiClient = new ItunesApiClient();
+        SongRepository songRepo = new SongRepositoryImpl();
+
+        try(EntityManagerFactory emf = PersistenceManager.getEntityManagerFactory()) {
+            assert emf.isOpen();
+            DatabaseInitializer initializer = new DatabaseInitializer(apiClient, songRepo);
+            initializer.init();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
