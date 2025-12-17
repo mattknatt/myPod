@@ -1,5 +1,7 @@
 package org.example;
 
+import jakarta.persistence.EntityManagerFactory;
+
 public class App {
     public static void main(String[] args) {
         PersistenceManager pm;
