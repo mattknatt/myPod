@@ -6,6 +6,7 @@ import org.example.entity.Album;
 import org.example.entity.Artist;
 import org.example.entity.Song;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SongRepositoryImpl implements SongRepository {
@@ -38,23 +39,66 @@ public class SongRepositoryImpl implements SongRepository {
 
     @Override
     public List<Song> findAll() {
-        return List.of();
+        return emf.callInTransaction(em ->
+            em.createQuery("select s from Song s", Song.class)
+                .getResultList());
     }
 
     @Override
     public List<Song> findByArtist(Artist artist) {
-        return List.of();
+        if (artist == null) return new ArrayList<>();
+
+        return emf.callInTransaction(em ->
+            em.createQuery(
+                    """
+                        select s
+                        from Song s
+                        join fetch s.album a
+                        join fetch a.artist art
+                        where art = :artist
+                        """,
+                    Song.class
+                )
+                .setParameter("artist", artist)
+                .getResultList());
     }
+
 
     @Override
     public List<Song> findByAlbum(Album album) {
-        return List.of();
+        if (album == null) return new ArrayList<>();
+
+        return emf.callInTransaction(em ->
+            em.createQuery(
+                    """
+                        select s
+                        from Song s
+                        join fetch s.album a
+                        join fetch a.artist art
+                        where a = :album
+                        """,
+                    Song.class
+                )
+                .setParameter("album", album)
+                .getResultList());
     }
 
     @Override
     public List<Song> findByGenre(String genre) {
-        return List.of();
+        if (genre == null || genre.isBlank()) return new ArrayList<>();
+
+        return emf.callInTransaction(em ->
+            em.createQuery(
+                    """
+                        select s
+                        from Song s
+                        join fetch s.album a
+                        join fetch a.artist art
+                        where lower(a.genre) = lower(:genre)
+                        """,
+                    Song.class
+                )
+                .setParameter("genre", genre)
+                .getResultList());
     }
-
-
 }
