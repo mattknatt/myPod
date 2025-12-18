@@ -273,7 +273,7 @@ public class MyPod extends Application{
 
         } catch (Exception e) {
             System.err.println("Kunde inte ladda data: " + e.getMessage());
-
+            throw new RuntimeException("Kunde inte ladda data: " + e);
         }
     }
 
