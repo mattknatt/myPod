@@ -4,12 +4,13 @@ import org.example.entity.Playlist;
 import org.example.entity.Song;
 
 import java.util.List;
+import java.util.Set;
 
 public interface PlaylistRepository {
 
     List<Playlist> findAll();
 
-    List<Song> findSongsInPlaylist(Playlist playlist);
+    Set<Song> findSongsInPlaylist(Playlist playlist);
 
     void createPlaylist(String name);
 

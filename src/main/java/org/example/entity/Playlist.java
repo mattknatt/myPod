@@ -19,6 +19,12 @@ public class Playlist {
     @ManyToMany(cascade = CascadeType.PERSIST)
     private Set<Song> songs = new HashSet<>();
 
+    protected Playlist() {}
+
+    public Playlist(String name) {
+        this.name = name;
+    }
+
     public void addSong(Song song) {
         this.songs.add(song);
     }
@@ -31,12 +37,14 @@ public class Playlist {
         return playlistId;
     }
 
-    public void setPlaylistId(Long playlistId) {
-        this.playlistId = playlistId;
-    }
-
     public String getName() {
         return name;
+    }
+
+    public Set<Song> getSongs() {return songs;}
+
+    public void setPlaylistId(Long playlistId) {
+        this.playlistId = playlistId;
     }
 
     public void setName(String name) {
