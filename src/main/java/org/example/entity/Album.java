@@ -9,7 +9,9 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.awt.image.ImageProducer;
+import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -51,30 +53,27 @@ public class Album {
 
     protected Album (){}
 
-    public Album(Long albumId, String name, String genre, int year, Long trackCount, Optional<BufferedImage> cover, Artist artist) {
+    public Album(Long albumId, String name, String genre, int year, Long trackCount, byte[] cover, Artist artist) {
         this.albumId = albumId;
         this.name = name;
         this.genre = genre;
         this.year = year;
         this.trackCount = trackCount;
         this.artist = artist;
-        if(cover.isPresent()){
-            //todo convert image to bytearray
-        }
-        else{
-            //todo default album cover
-        }
+        this.cover = cover;
     }
 
     public static Album fromDTO(ItunesDTO dto, Artist artist) {
         if (dto.collectionId() == null || dto.collectionName() == null){
             throw new IllegalArgumentException("Required fields (albumId, albumName) cannot be null");
         }
-        Optional<BufferedImage> cover;
+
+        byte[] cover;
         try {
-            cover = Optional.ofNullable(ImageIO.read(dto.artworkUrl100()));
-        } catch (IOException e) {
-            cover = Optional.empty();
+            File file = new File(dto.artworkUrl100().toURI());
+            cover = Files.readAllBytes(file.toPath());
+        } catch (Exception e) {
+            System.out.println(e);
         }
 
 
