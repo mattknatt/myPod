@@ -22,7 +22,10 @@ public class PlaylistRepositoryImpl implements PlaylistRepository {
 
     @Override
     public Set<Song> findSongsInPlaylist(Playlist playlist) {
-        return playlist.getSongs();
+        return emf.callInTransaction(em -> {
+            Playlist managed = em.merge(playlist);
+            return managed.getSongs();
+            });
     }
 
     @Override
