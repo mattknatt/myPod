@@ -28,6 +28,7 @@
     -fx-font-family: "Lucida Console";
 }
 
+
 .selected-item {
     -fx-background-color: #333333;
     -fx-text-fill: #ffffff;

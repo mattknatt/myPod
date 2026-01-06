@@ -166,6 +166,7 @@ public class MyPod extends Application {
         StackPane wheel = new StackPane();
         wheel.setPrefSize(200, 200);
 
+
         // Det stora yttre hjulet
         Circle outerWheel = new Circle(100);
         outerWheel.getStyleClass().add("outer-wheel");
