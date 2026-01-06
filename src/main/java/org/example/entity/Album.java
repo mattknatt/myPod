@@ -9,9 +9,12 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.awt.image.ImageProducer;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -68,14 +71,8 @@ public class Album {
             throw new IllegalArgumentException("Required fields (albumId, albumName) cannot be null");
         }
 
-        byte[] cover;
-        try {
-            File file = new File(dto.artworkUrl100().toURI());
-            cover = Files.readAllBytes(file.toPath());
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-
+        //Try getting cover from url first, if null go for backup image in resources
+        byte[] cover = generateAlbumCover(dto.artworkUrl100());
 
         return new Album(dto.collectionId(), dto.collectionName(), dto.primaryGenreName(), dto.releaseYear(), dto.trackCount(), cover,artist);
     }
@@ -134,6 +131,77 @@ public class Album {
 
     public void setArtist(Artist artist) {
         this.artist = artist;
+    }
+
+    /**
+     * generate and returns byte array with cover art
+     * @param url url pointing to desired cover
+     * @return a byte array of either the desired cover or default from resources, NULL if error is thrown
+     */
+    public static byte[] generateAlbumCover(URL url){
+        try{
+            BufferedImage bi = loadUrlImage(url);
+
+            if (bi != null ) {
+                return imageToBytes(bi);
+            }
+            else return imageToBytes(loadDefaultImage());
+        } catch (IOException e) {
+            System.out.println(e);
+        }
+        return null;
+    }
+
+    /**
+     * converts image to byte array to be stored as BLOB
+     * @param bi buffered jpg image
+     * @return
+     */
+    public static byte[] imageToBytes(BufferedImage bi){
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        try {
+            ImageIO.write(bi, "jpg", stream); //should always be jpg for this application
+        } catch(IOException e) {
+            System.out.println(e);
+            return null;
+        }
+        return stream.toByteArray();
+    }
+
+    /**
+     *
+     * @param url url pointing to desired cover
+     * @return bufferedImage of desired cover or null if not available
+     */
+    public static BufferedImage loadUrlImage(URL url){
+        BufferedImage bi;
+        try {
+            bi = ImageIO.read(url);
+        } catch (IOException e) {
+            return null;
+        }
+
+        if (bi == null) {
+            System.err.println("The URL does not point to a valid image.");
+            return null;
+        }
+
+        return bi;
+    }
+
+    /**
+     *
+     * @return default cover art from resources
+     * @throws IOException
+     */
+    public static BufferedImage loadDefaultImage() throws IOException {
+        try (InputStream is = Image.class.getResourceAsStream("/itunescover.jpg")) {
+            if (is == null) {
+                System.err.println("Could not load default image");
+                return null;
+            }
+            return ImageIO.read(is);
+        }
     }
 
     @Override
