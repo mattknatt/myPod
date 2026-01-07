@@ -7,17 +7,11 @@ import org.hibernate.proxy.HibernateProxy;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.ImageObserver;
-import java.awt.image.ImageProducer;
 import java.io.*;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Entity
 public class Album {
@@ -69,6 +63,7 @@ public class Album {
         }
 
         //Try getting cover from url first, if null go for backup image in resources
+        //Backup might be unnecessary here, better to store as null and load default in ui?
         byte[] cover = generateAlbumCover(dto.artworkUrl100());
 
         return new Album(dto.collectionId(), dto.collectionName(), dto.primaryGenreName(), dto.releaseYear(), dto.trackCount(), cover,artist);
@@ -135,8 +130,7 @@ public class Album {
     }
 
     public Image getCoverImage() {
-        ByteArrayInputStream bais = new ByteArrayInputStream(getCover());
-        try {
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(getCover());){
             return ImageIO.read(bais);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -150,20 +144,15 @@ public class Album {
     /**
      * generate and returns byte array with cover art
      * @param url url pointing to desired cover
-     * @return a byte array of either the desired cover or default from resources, NULL if error is thrown
+     * @return a byte array of either the desired cover or default from resources, returns null if both the URL image and default image fail to load
      */
     public static byte[] generateAlbumCover(URL url){
-        try{
-            BufferedImage bi = loadUrlImage(url);
+        BufferedImage bi = loadUrlImage(url);
 
-            if (bi != null ) {
-                return imageToBytes(bi);
-            }
-            else return imageToBytes(loadDefaultImage());
-        } catch (IOException e) {
-            System.out.println(e);
+        if (bi != null ) {
+            return imageToBytes(bi);
         }
-        return null;
+        else return imageToBytes(loadDefaultImage());
     }
 
     /**
@@ -176,7 +165,7 @@ public class Album {
         try {
             ImageIO.write(bi, "jpg", stream); //should always be jpg for this application
         } catch(IOException e) {
-            System.out.println(e);
+            System.err.println(e);
             return null;
         }
         return stream.toByteArray();
@@ -210,13 +199,16 @@ public class Album {
      * @return default cover art from resources
      * @throws IOException
      */
-    public static BufferedImage loadDefaultImage() throws IOException {
+    public static BufferedImage loadDefaultImage() {
         try (InputStream is = Image.class.getResourceAsStream("/itunescover.jpg")) {
             if (is == null) {
                 System.err.println("Could not load default image");
                 return null;
             }
             return ImageIO.read(is);
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
