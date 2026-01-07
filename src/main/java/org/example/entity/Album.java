@@ -65,6 +65,7 @@ public class Album {
         //Try getting cover from url first, if null go for backup image in resources
         //Backup might be unnecessary here, better to store as null and load default in ui?
         byte[] cover = generateAlbumCover(dto.artworkUrl100());
+        //todo do this async?
 
         return new Album(dto.collectionId(), dto.collectionName(), dto.primaryGenreName(), dto.releaseYear(), dto.trackCount(), cover,artist);
     }
@@ -162,14 +163,14 @@ public class Album {
      */
     public static byte[] imageToBytes(BufferedImage bi){
         if (bi == null) return null;
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        try {
+
+        try (ByteArrayOutputStream stream = new ByteArrayOutputStream()){
             ImageIO.write(bi, "jpg", stream); //should always be jpg for this application
+            return stream.toByteArray();
         } catch(IOException e) {
             System.err.println(e);
             return null;
         }
-        return stream.toByteArray();
     }
 
     /**
