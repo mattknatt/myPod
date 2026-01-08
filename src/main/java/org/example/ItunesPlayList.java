@@ -344,9 +344,9 @@ public class ItunesPlayList {
             this.time = formatTime(t);
         }
 
-        // Metod för att konvertera och skriva ut millisekunder som MM:SS
+        // Konvertera millisekunder till mm:ss
         private String formatTime(Long millis) {
-            if (millis == null) return "0:00";
+            if (millis == null || millis < 0) return "0:00";
 
             long seconds = millis / 1000;
             long minutes = seconds / 60;
