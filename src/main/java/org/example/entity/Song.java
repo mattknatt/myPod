@@ -86,7 +86,6 @@ public class Song {
         this.length = length;
     }
 
-
     public Album getAlbum() {
         return album;
     }

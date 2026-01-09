@@ -23,13 +23,6 @@ public class PlaylistRepositoryImpl implements PlaylistRepository {
         }
     }
 
-//    @Override
-//    public List<Playlist> findAll() {
-//        return emf.callInTransaction(em ->
-//            em.createQuery("select pl from Playlist pl", Playlist.class)
-//                .getResultList());
-//    }
-
     @Override
     public List<Playlist> findAll() {
         try (var em = emf.createEntityManager()) {
@@ -44,22 +37,13 @@ public class PlaylistRepositoryImpl implements PlaylistRepository {
     }
 
     @Override
-    public boolean existsByUniqueId(Long id){
+    public boolean existsByUniqueId(Long id) {
         try (var em = emf.createEntityManager()) {
-            return em.createQuery("select count(pl) from Playlist pl where pl.id = :playlistId", Long.class)
+            return em.createQuery("select count(pl) from Playlist pl where pl.playlistId = :playlistId", Long.class)
                 .setParameter("playlistId", id)
                 .getSingleResult() > 0;
         }
     }
-
-//    @Override
-//    public Playlist findById(Long id) {
-//        return emf.callInTransaction(em ->
-//            em.createQuery("select pl from Playlist pl where pl.id = :playlistId", Playlist.class)
-//                .setParameter("playlistId", id)
-//                .getSingleResult());
-//    }
-
 
     @Override
     public Playlist findById(Long id) {
@@ -86,6 +70,14 @@ public class PlaylistRepositoryImpl implements PlaylistRepository {
     }
 
     @Override
+    public boolean isSongInPlaylist(Playlist playlist, Song song) {
+        return emf.callInTransaction(em -> {
+            Playlist managed = em.merge(playlist);
+            return managed.getSongs().contains(song);
+        });
+    }
+
+    @Override
     public Playlist createPlaylist(String name) {
         Playlist playlist = new Playlist(name);
         emf.runInTransaction(em -> em.persist(playlist));
@@ -103,7 +95,6 @@ public class PlaylistRepositoryImpl implements PlaylistRepository {
     @Override
     public void addSong(Playlist playlist, Song song) {
         emf.runInTransaction(em -> {
-
             Playlist managed = em.merge(playlist);
             managed.addSong(song);
         });

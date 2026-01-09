@@ -3,7 +3,6 @@ package org.example;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -13,16 +12,12 @@ import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import org.example.entity.Artist;
 import org.example.entity.Playlist;
 import org.example.entity.Song;
 import org.example.repo.PlaylistRepository;
 import org.example.repo.PlaylistRepositoryImpl;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Huvudklass för GUI:t. Hanterar visning av bibliotek, spellistor och sökning.
@@ -31,17 +26,10 @@ public class ItunesPlayList {
 
     PlaylistRepository pri = new PlaylistRepositoryImpl();
 
-    // --- DATAMODELLER ---
-
-    // En Map som lagrar alla spellistor. Nyckeln är namnet (t.ex. "Musik") och värdet är listan med låtar.
-    private Map<String, ObservableList<DisplaySong>> allPlaylists = new HashMap<>();
+    // --- DATAMODELL ---
 
     // En lista med alla playlist som finns i databasen
     private ObservableList<Playlist> allPlaylistList = FXCollections.observableArrayList();
-
-    // Listan med namn på spellistor som visas i vänstermenyn (Sidebar).
-    // "ObservableList" gör att GUI:t uppdateras automatiskt om vi lägger till/tar bort namn här.
-    private ObservableList<String> playlistNames = FXCollections.observableArrayList();
 
     // --- GUI KOMPONENTER ---
 
@@ -63,8 +51,8 @@ public class ItunesPlayList {
     public void showLibrary(List<Playlist> dbPlaylists) {
         Stage stage = new Stage();
 
-        // Konvertera databas-objekten till vår interna DisplaySong-klass och skapa grundlistorna
-        initData(dbPlaylists);
+        // Lägg till existerande playlist i vår lokala lista
+        allPlaylistList.addAll(dbPlaylists);
 
         // BorderPane är huvudlayouten: Top, Left, Center, Bottom
         BorderPane root = new BorderPane();
@@ -122,11 +110,6 @@ public class ItunesPlayList {
                 searchField.clear(); // Rensa gammal sökning
                 // Hämta låtlistan från vår Map baserat på namnet och visa i tabellen
                 ObservableList<Song> songList = FXCollections.observableArrayList(newVal.getSongs().stream().toList());
-                System.out.println("Ping");
-                for (Song s : songList) {
-                    System.out.println(s.getTitle());
-                }
-                System.out.println("Pong");
                 songTable.setItems(songList);
             }
         });
@@ -242,7 +225,7 @@ public class ItunesPlayList {
         });
 
         TableColumn<Song, String> timeCol = new TableColumn<>("Längd");
-        timeCol.setCellValueFactory(d ->{
+        timeCol.setCellValueFactory(d -> {
             Song s = d.getValue();
             if (s.getFormattedLength() != null) {
                 return new SimpleStringProperty(s.getFormattedLength());
@@ -260,7 +243,11 @@ public class ItunesPlayList {
         songTable.getSelectionModel().selectedItemProperty().addListener((obs, old, newVal) -> {
             if (newVal != null) {
                 lcdTitle.setText(newVal.getTitle());
-                lcdArtist.setText(newVal.getAlbum().getArtist().getName());
+                String artistName = "Okänd artist";
+                if (newVal.getAlbum() != null && newVal.getAlbum().getArtist() != null && newVal.getAlbum().getArtist().getName() != null) {
+                    artistName = newVal.getAlbum().getArtist().getName();
+                }
+                lcdArtist.setText(artistName);
             }
         });
     }
@@ -285,44 +272,18 @@ public class ItunesPlayList {
         FilteredList<Song> filteredData = new FilteredList<>(masterData, song -> {
             String filter = searchText.toLowerCase();
             // Returnera true om sökordet finns i namn, artist eller album
-            return song.getTitle().toLowerCase().contains(filter) ||
-                song.getAlbum().getArtist().getName().toLowerCase().contains(filter) ||
+            boolean titleMatch = song.getTitle() != null && song.getTitle().toLowerCase().contains(filter);
+            boolean artistMatch = song.getAlbum() != null &&
+                song.getAlbum().getArtist() != null &&
+                song.getAlbum().getArtist().getName() != null &&
+                song.getAlbum().getArtist().getName().toLowerCase().contains(filter);
+            boolean albumMatch = song.getAlbum() != null &&
+                song.getAlbum().getName() != null &&
                 song.getAlbum().getName().toLowerCase().contains(filter);
+            return titleMatch || artistMatch || albumMatch;
         });
 
         songTable.setItems(filteredData);
-    }
-
-    /**
-     * Omvandlar databas-objekten till GUI-objekt och skapar standardlistor.
-     */
-    private void initData(List<Playlist> dbPlaylists) {
-        //allPlaylistList = FXCollections.observableArrayList(dbPlaylists);
-        allPlaylistList.addAll(dbPlaylists);
-        //or(Playlist p : allPlaylistList){
-        //    allPlaylistList.add(p);
-        //}
-
-//        ObservableList<DisplaySong> library = FXCollections.observableArrayList();
-//        // Loopa igenom datan från databasen
-//        if (dbPlaylists != null) {
-//            for (Song s: dbSongs) {
-//                // Hantera null-värden snyggt (om artist eller album saknas)
-//                String art = (s.getAlbum() != null && s.getAlbum().getArtist() != null) ? s.getAlbum().getArtist().getName() : "Okänd";
-//                String alb = (s.getAlbum() != null) ? s.getAlbum().getName() : "Okänt";
-//
-//                // Skapa ett nytt DisplaySong-objekt
-//                library.add(new DisplaySong(s.getTitle(), art, alb, s.getFormattedLength()));
-//            }
-//        }
-
-//        // Lägg in huvudbiblioteket "Musik"
-//        allPlaylists.put("Bibliotek", library);
-//        playlistNames.add("Bibliotek");
-//
-//        // Skapa en tom lista för "Favoriter"
-//        allPlaylists.put("Favoriter", FXCollections.observableArrayList());
-//        playlistNames.add("Favoriter");
     }
 
     /**
@@ -330,28 +291,43 @@ public class ItunesPlayList {
      */
     private void createNewPlaylist() {
         TextInputDialog d = new TextInputDialog("Ny lista");
-
         // Här ändrar du fönstrets titel och text
-        d.setTitle("Skapa ny spellista");               // Ersätter "Bekräftelse"
-        d.setHeaderText("Ange namn på din nya lista");  // Rubriken inuti rutan
-        d.setContentText("Namn:");                      // Texten bredvid inmatningsfältet
+        d.setTitle("Skapa ny spellista");           // Ersätter "Bekräftelse"
+        d.setHeaderText("Ange namn på spellista");  // Rubriken inuti rutan
+        d.setContentText("Namn:");                  // Texten bredvid inmatningsfältet
 
         d.showAndWait().ifPresent(name -> {
-            // Kontrollera att namnet inte är tomt och inte redan finns
-            if (!name.trim().isEmpty() && !allPlaylists.containsKey(name)) {
+            if (!name.trim().isEmpty()) {
                 Playlist pl = pri.createPlaylist(name);
                 allPlaylistList.add(pl);
-                //allPlaylists.put(name, FXCollections.observableArrayList());
-                //playlistNames.add(name);
             }
         });
     }
 
-    // TODO, Metod för att byta namn på spellista?
-    // /**
-    //  * Ändra namn på vald spellista (men tillåter inte att man ändrar "Bibliotek"). ??
-    //  */
-    // private void renameSelectedPlaylist() {}
+    // TODO, Metod för att byta namn på spellista
+
+    /**
+     * Ändra namn på vald spellista (men tillåter inte att man ändrar "Bibliotek"). ??
+     */
+    private void renameSelectedPlaylist() {
+        Playlist sel = sourceList.getSelectionModel().getSelectedItem();
+
+        if (sel == null || sel.getPlaylistId() == 1L || sel.getPlaylistId() == 2L) {
+            return;
+        }
+
+        TextInputDialog d = new TextInputDialog("Ändra namn");
+        d.setTitle("Byt namn på spellista");
+        d.setHeaderText("Ändra namn på spellistan");
+        d.setContentText("Nytt namn:");
+
+        d.showAndWait().ifPresent(newName -> {
+            if (!newName.trim().isEmpty()) {
+                pri.renamePlaylist(sel, newName);
+                //behöver vi uppdatera den lokala listan av playlist?
+            }
+        });
+    }
 
     /**
      * Tar bort vald spellista (men tillåter inte att man tar bort "Bibliotek" eller "Favoriter").
@@ -361,8 +337,6 @@ public class ItunesPlayList {
         if (sel != null && sel.getPlaylistId() != 1L && sel.getPlaylistId() != 2L) {
             pri.deletePlaylist(sel);
             allPlaylistList.remove(sel);
-//            allPlaylists.remove(sel);
-//            playlistNames.remove(sel);
         }
     }
 
@@ -372,10 +346,10 @@ public class ItunesPlayList {
     private void removeSelectedSong() {
         Song sel = songTable.getSelectionModel().getSelectedItem();
         Playlist list = sourceList.getSelectionModel().getSelectedItem();
-        // Skydd: Man får inte ta bort låtar direkt från "Musik"-biblioteket i denna vy
+        // Skydd: Man får inte ta bort låtar direkt från biblioteket i denna vy
         if (sel != null && list != null && list.getPlaylistId() != 1L) {
             pri.removeSong(list, sel);
-            pri.save(list);
+            //pri.save(list);
         }
     }
 
@@ -393,9 +367,10 @@ public class ItunesPlayList {
             MenuItem itm = new MenuItem(pl.getName());
             itm.setOnAction(e -> {
                 // Om låten inte redan finns i listan, lägg till den
-                if (!pl.getSongs().contains(sel)) {
-                    pl.addSong(sel);
-                    pri.save(pl);
+                if (!pri.isSongInPlaylist(pl, sel)) {
+                    pri.addSong(pl, sel);
+                    //pl.addSong(sel);
+                    //pri.save(pl);
                 }
             });
             menu.getItems().add(itm);

@@ -15,17 +15,19 @@ public class DatabaseInitializer {
     private final SongRepository songRepo;
     private final AlbumRepository albumRepo;
     private final ArtistRepository artistRepo;
-    private final PlaylistRepository pri = new PlaylistRepositoryImpl();
+    private final PlaylistRepository playlistRepo;
 
-    public DatabaseInitializer(ItunesApiClient apiClient, SongRepository songRepo , AlbumRepository albumRepo, ArtistRepository artistRepo) {
+    public DatabaseInitializer(ItunesApiClient apiClient, SongRepository songRepo , AlbumRepository albumRepo, ArtistRepository artistRepo, PlaylistRepository playlistRepo) {
         this.apiClient = apiClient;
         this.songRepo = songRepo;
         this.albumRepo = albumRepo;
         this.artistRepo = artistRepo;
+        this.playlistRepo = playlistRepo;
     }
 
     public void init() {
-        if (songRepo.count() > 0) { //check if there is data already
+        // Check if there is data already
+        if (songRepo.count() > 0) {
             return;
         }
 
@@ -64,16 +66,16 @@ public class DatabaseInitializer {
             }
         }
 
-        if(!pri.existsByUniqueId(1L)) { // Finns det en playlist borde det vara "Bibliotek"
-            Playlist pl1 = pri.createPlaylist("Bibliotek");
+        if(!playlistRepo.existsByUniqueId(1L)) { // Finns det en playlist borde det vara "Bibliotek"
+            Playlist pl1 = playlistRepo.createPlaylist("Bibliotek");
             for(Song s : songRepo.findAll()) {
                 pl1.addSong(s);
             }
-            pri.save(pl1);
+            playlistRepo.save(pl1);
             //Lägger bara till låtar som fanns innan listan, om fler "laddas ner" behövs de manuellt läggas till
         }
-        if(!pri.existsByUniqueId(2L)) { // Finns det två playlist borde den andra vara "Favoriter"
-            pri.createPlaylist("Favoriter");
+        if(!playlistRepo.existsByUniqueId(2L)) { // Finns det två playlist borde den andra vara "Favoriter"
+            playlistRepo.createPlaylist("Favoriter");
         }
     }
 }

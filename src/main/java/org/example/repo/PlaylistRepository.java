@@ -15,6 +15,8 @@ public interface PlaylistRepository {
 
     Set<Song> findSongsInPlaylist(Playlist playlist);
 
+    boolean isSongInPlaylist(Playlist playlist, Song song);
+
     Playlist createPlaylist(String name);
 
     boolean existsByUniqueId(Long id);

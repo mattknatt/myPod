@@ -184,9 +184,14 @@ public class MyPod extends Application {
         // Om man klickar på ordet MENU med musen går man tillbaka
         menu.setOnMouseClicked(e -> showMainMenu());
 
-        Label ff = new Label("⏭"); ff.getStyleClass().add("wheel-text"); ff.setId("ff-button");
-        Label rew = new Label("⏮"); rew.getStyleClass().add("wheel-text"); rew.setId("rew-button");
-        Label play = new Label("▶"); play.getStyleClass().add("wheel-text-play");
+        Label ff = new Label("⏭");
+        ff.getStyleClass().add("wheel-text");
+        ff.setId("ff-button");
+        Label rew = new Label("⏮");
+        rew.getStyleClass().add("wheel-text");
+        rew.setId("rew-button");
+        Label play = new Label("▶");
+        play.getStyleClass().add("wheel-text-play");
 
         wheel.getChildren().addAll(outerWheel, centerButton, menu, ff, rew, play);
         return wheel;
@@ -364,7 +369,7 @@ public class MyPod extends Application {
     private void initializeData() {
         try {
             EntityManagerFactory emf = PersistenceManager.getEntityManagerFactory();
-            DatabaseInitializer initializer = new DatabaseInitializer(apiClient, songRepo, albumRepo, artistRepo);
+            DatabaseInitializer initializer = new DatabaseInitializer(apiClient, songRepo, albumRepo, artistRepo, playlistRepo);
             initializer.init(); // Fyll databasen om den är tom
 
             // Hämta data till minnet
