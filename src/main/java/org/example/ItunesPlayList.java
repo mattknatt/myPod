@@ -430,9 +430,13 @@ public class ItunesPlayList {
 
         d.showAndWait().ifPresent(newName -> {
             if (!newName.trim().isEmpty()) {
-                pri.renamePlaylist(sel, newName);
-                sel.setName(newName);
-                sourceList.refresh();
+                try {
+                    pri.renamePlaylist(sel, newName);
+                    sel.setName(newName);
+                    sourceList.refresh();
+                } catch (IllegalStateException ex) {
+                    new Alert(Alert.AlertType.ERROR, "Kunde inte byta namn: " + ex.getMessage()).showAndWait();
+                }
             }
         });
     }
