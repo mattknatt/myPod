@@ -176,7 +176,10 @@ public class PlaylistRepositoryImpl implements PlaylistRepository {
             throw new IllegalArgumentException("Playlist and new name cannot be null or empty");
         }
         emf.runInTransaction(em -> {
-            Playlist managed = em.merge(playlist);
+            Playlist managed = em.find(Playlist.class, playlist.getPlaylistId());
+            if (managed == null) {
+                throw new IllegalStateException("Playlist not found with id: " + playlist.getPlaylistId());
+            }
             managed.setName(newName);
         });
     }

@@ -121,6 +121,7 @@ public class ItunesPlayList {
             renameItem.setOnAction(event -> {
                 Playlist selected = cell.getItem();
                 if (selected != null) {
+                    sourceList.getSelectionModel().select(selected);
                     renameSelectedPlaylist();
                 }
 
@@ -130,6 +131,7 @@ public class ItunesPlayList {
             deleteItem.setOnAction(event -> {
                 Playlist selected = cell.getItem();
                 if (selected != null) {
+                    sourceList.getSelectionModel().select(selected);
                     deleteSelectedPlaylist();
                 }
             });
@@ -165,10 +167,6 @@ public class ItunesPlayList {
         // ---------------------------------------------------------
         setupTable(); // Konfigurerar kolumner och beteende för tabellen
 
-        // ---------------------------------------------------------
-        // 3. MITTEN (Låttabellen)
-        // ---------------------------------------------------------
-        setupTable(); // Konfigurerar kolumner och beteende för tabellen
 
         // ---------------------------------------------------------
         // 4. BOTTEN (Knappar för att hantera listor)
@@ -305,10 +303,20 @@ public class ItunesPlayList {
             TableRow<Song> row = new TableRow<>();
             ContextMenu contextMenu = new ContextMenu();
 
+            row.setOnContextMenuRequested(e -> {
+                if (!row.isEmpty()) {
+                    songTableView.getSelectionModel().select(row.getIndex());
+                }
+            });
+
+
             Menu addSongSubMenu = new Menu("Lägg till i spellistan");
             MenuItem removeSongItem = new MenuItem("Ta bort från Spellistan");
 
             removeSongItem.setOnAction(e -> {
+                if (!row.isEmpty()) {
+                    songTableView.getSelectionModel().select(row.getIndex());
+                }
                 removeSelectedSong();
             });
 
