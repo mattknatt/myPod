@@ -98,17 +98,55 @@ public class ItunesPlayList {
         sourceList.getStyleClass().add("source-list");
         sourceList.setPrefWidth(200);
 
-        sourceList.setCellFactory(sl -> new ListCell<>() {
-            @Override
-            protected void updateItem(Playlist playlist, boolean empty) {
-                super.updateItem(playlist, empty);
-                if (empty || playlist == null) {
-                    setText(null);
-                } else {
-                    setText(playlist.getName());
+        /// Ändrad Kod ///
+
+        sourceList.setCellFactory(sl -> {
+            ListCell<Playlist> cell = new ListCell<>() {
+                @Override
+                protected void updateItem(Playlist playlist, boolean empty) {
+                    super.updateItem(playlist, empty);
+                    if (empty || playlist == null) {
+                        setText(null);
+                        setContextMenu(null); // Ingen meny på tom rad
+                    } else {
+                        setText(playlist.getName());
+                    }
                 }
-            }
+            };
+
+
+            ContextMenu contextMenu = new ContextMenu();
+
+            MenuItem renameItem = new MenuItem("Byt Namn");
+            renameItem.setOnAction(event -> {
+                Playlist selected = cell.getItem();
+                if (selected != null) {
+                    renameSelectedPlaylist();
+                }
+
+            });
+
+            MenuItem deleteItem = new MenuItem("Ta Bort");
+            deleteItem.setOnAction(event -> {
+                Playlist selected = cell.getItem();
+                if (selected != null) {
+                    deleteSelectedPlaylist();
+                }
+            });
+
+            contextMenu.getItems().addAll(renameItem, deleteItem, new SeparatorMenuItem());
+
+            cell.emptyProperty().addListener((obs, wasEmpty, isNowEmpty) -> {
+                if (isNowEmpty) {
+                    cell.setContextMenu(null);
+                }else {
+                    cell.setContextMenu(contextMenu);
+                }
+            });
+            return cell;
         });
+
+        /// ///////////////////////////////////////////////
 
         // Lyssnare: Vad händer när man klickar på en spellista i menyn?
         sourceList.getSelectionModel().selectedItemProperty().addListener((obs, old, newVal) -> {
@@ -121,6 +159,11 @@ public class ItunesPlayList {
         });
 
         sourceList.getSelectionModel().selectFirst(); // Välj första listan ("Bibliotek") som startvärde
+
+        // ---------------------------------------------------------
+        // 3. MITTEN (Låttabellen)
+        // ---------------------------------------------------------
+        setupTable(); // Konfigurerar kolumner och beteende för tabellen
 
         // ---------------------------------------------------------
         // 3. MITTEN (Låttabellen)
