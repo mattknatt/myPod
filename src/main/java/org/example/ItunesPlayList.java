@@ -299,7 +299,68 @@ public class ItunesPlayList {
                 lcdArtist.setText(artistName);
             }
         });
+
+        /// NY KOD - Högerklicksfunktion på låtar för att lägga till och ta bort från spellista ////
+        songTable.setRowFactory(songTableView -> {
+            TableRow<Song> row = new TableRow<>();
+            ContextMenu contextMenu = new ContextMenu();
+
+            Menu addSongSubMenu = new Menu("Lägg till i spellistan");
+            MenuItem removeSongItem = new MenuItem("Ta bort från Spellistan");
+
+            removeSongItem.setOnAction(e -> {
+                removeSelectedSong();
+            });
+
+            // VIKTIGT: Uppdatera när hela ContextMenu visas
+            contextMenu.setOnShowing(event -> {
+                addSongSubMenu.getItems().clear();
+                Song selectedSong = row.getItem();
+
+
+                if (selectedSong != null && !allPlaylistList.isEmpty()) {
+                    for (Playlist pl : allPlaylistList) {
+                        // Hoppa över biblioteket/huvudlistan om id är 1
+                        if (pl.getPlaylistId() == 1L) continue;
+
+                        MenuItem playListItem = new MenuItem(pl.getName());
+                        playListItem.setOnAction(e -> {
+                            if (!pri.isSongInPlaylist(pl, selectedSong)) {
+                                pri.addSong(pl, selectedSong);
+                                pl.getSongs().add(selectedSong);
+                            }
+                        });
+                        addSongSubMenu.getItems().add(playListItem);
+                    }
+                }
+
+
+                if (addSongSubMenu.getItems().isEmpty()) {
+                    MenuItem emptyItem = new MenuItem("Inga spellistor tillgängliga");
+                    emptyItem.setDisable(true);
+                    addSongSubMenu.getItems().add(emptyItem);
+                }
+
+                Playlist currentList = sourceList.getSelectionModel().getSelectedItem();
+                removeSongItem.setVisible(currentList != null && currentList.getPlaylistId() != 1L);
+            });
+
+            contextMenu.getItems().addAll(addSongSubMenu, new SeparatorMenuItem(), removeSongItem);
+
+
+            row.emptyProperty().addListener((obs, wasEmpty, isNowEmpty) -> {
+                if (isNowEmpty) {
+                    row.setContextMenu(null);
+                } else {
+                    row.setContextMenu(contextMenu);
+                }
+            });
+
+            return row;
+        });
     }
+    /// ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
     /**
      * Filtrerar låtarna i den aktiva listan baserat på söktexten.
@@ -372,6 +433,7 @@ public class ItunesPlayList {
         d.showAndWait().ifPresent(newName -> {
             if (!newName.trim().isEmpty()) {
                 pri.renamePlaylist(sel, newName);
+                sel.setName(newName);
                 sourceList.refresh();
             }
         });
