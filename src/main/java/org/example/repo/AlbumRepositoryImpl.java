@@ -11,7 +11,7 @@ public class AlbumRepositoryImpl implements AlbumRepository {
 
     private final EntityManagerFactory emf;
 
-    public AlbumRepositoryImpl(EntityManagerFactory emf) {
+    public AlbumRepositoryImpl (EntityManagerFactory emf) {
         this.emf = emf;
     }
 
