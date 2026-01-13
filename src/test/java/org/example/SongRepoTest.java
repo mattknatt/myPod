@@ -1,6 +1,5 @@
 package org.example;
 
-import org.example.entity.Artist;
 import org.example.entity.Song;
 import org.junit.jupiter.api.Test;
 
@@ -11,12 +10,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SongRepoTest extends RepoTest {
 
     @Test
-    void count_shouldReturnNumberOfSongs(){
+    void count_shouldReturnNumberOfSongs() {
         // Given, When
         Long count = songRepo.count();
 
         // Then
-        assertThat(count == 5L);
+        assertThat(count).isEqualTo(5L);
     }
 
     @Test
@@ -38,7 +37,7 @@ public class SongRepoTest extends RepoTest {
         List<Song> testSongs = songRepo.findAll();
 
         // Then
-        assertThat(testSongs.contains(testSong));
+        assertThat(testSongs).contains(testSong);
     }
 
     @Test
@@ -47,11 +46,7 @@ public class SongRepoTest extends RepoTest {
         List<Song> testSongs = songRepo.findAll();
 
         // Then
-        assertThat(testSongs.contains(testSong1));
-        assertThat(testSongs.contains(testSong2));
-        assertThat(testSongs.contains(testSong3));
-        assertThat(testSongs.contains(testSong4));
-        assertThat(testSongs.contains(testSong5));
+        assertThat(testSongs).contains(testSong1, testSong2, testSong3, testSong4, testSong5);
     }
 
     @Test
@@ -60,8 +55,6 @@ public class SongRepoTest extends RepoTest {
         List<Song> testSongs = songRepo.findByArtist(testArtist1);
 
         // Then
-        assertThat(testSongs.contains(testSong1));
-        assertThat(testSongs.contains(testSong2));
-        assertThat(testSongs.contains(testSong3));
+        assertThat(testSongs).contains(testSong1, testSong2, testSong3);
     }
 }

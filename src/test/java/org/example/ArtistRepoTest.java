@@ -1,7 +1,6 @@
 package org.example;
 
 import org.example.entity.Artist;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -29,7 +28,7 @@ public class ArtistRepoTest extends RepoTest {
         List<Artist> artists = artistRepo.findAll();
 
         // Then
-        assertThat(artists.contains(testArtist3));
+        assertThat(artists).contains(testArtist3);
     }
 
     @Test
@@ -38,8 +37,7 @@ public class ArtistRepoTest extends RepoTest {
         List<Artist> artists = artistRepo.findAll();
 
         // Then
-        assertThat(artists.contains(testArtist1));
-        assertThat(artists.contains(testArtist2));
+        assertThat(artists).contains(testArtist1, testArtist2);
     }
 
     @Test
@@ -48,6 +46,6 @@ public class ArtistRepoTest extends RepoTest {
         Long count = artistRepo.count();
 
         // Then
-        assertThat(count == 2L);
+        assertThat(count).isEqualTo(2L);
     }
 }

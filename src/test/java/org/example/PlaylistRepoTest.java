@@ -1,13 +1,7 @@
 package org.example;
 
-import org.example.entity.Album;
-import org.example.entity.Artist;
 import org.example.entity.Playlist;
 import org.example.entity.Song;
-import org.example.repo.AlbumRepositoryImpl;
-import org.example.repo.ArtistRepositoryImpl;
-import org.example.repo.PlaylistRepositoryImpl;
-import org.example.repo.SongRepositoryImpl;
 import org.junit.jupiter.api.*;
 
 import java.util.ArrayList;
@@ -15,10 +9,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- *
- * Beskriv var ifrån variablerna kommer ifrån (testSong1 etc)
- */
 class PlaylistRepoTest extends RepoTest {
 
     @Test
@@ -75,9 +65,7 @@ class PlaylistRepoTest extends RepoTest {
         Playlist reloaded = playlistRepo.findById(playlist.getPlaylistId());
 
         assertThat(reloaded.getSongs()).hasSize(3);
-        assertThat(reloaded.getSongs().contains(testSong1));
-        assertThat(reloaded.getSongs().contains(testSong2));
-        assertThat(reloaded.getSongs().contains(testSong3));
+        assertThat(reloaded.getSongs()).contains(testSong1, testSong2, testSong3);
     }
 
     @Test
@@ -105,7 +93,7 @@ class PlaylistRepoTest extends RepoTest {
         playlistRepo.deletePlaylist(playlist);
 
         // Then
-        assertThat(playlistRepo.findAll().isEmpty());
+        assertThat(playlistRepo.findAll()).isEmpty();
     }
 
     @Test
@@ -117,7 +105,8 @@ class PlaylistRepoTest extends RepoTest {
         playlistRepo.renamePlaylist(playlist, "NewPlaylist");
 
         // Then
-        assertThat(playlist.getName().equals("NewPlaylist"));
+        Playlist reloaded = playlistRepo.findById(playlist.getPlaylistId());
+        assertThat(reloaded.getName()).isEqualTo("NewPlaylist");
     }
 
     @Test
