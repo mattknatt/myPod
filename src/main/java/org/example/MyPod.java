@@ -431,7 +431,7 @@ public class MyPod extends Application {
         if (p.getSongs() != null && !p.getSongs().isEmpty()) {
             List<Song> playlistSongs = new ArrayList<>(p.getSongs());
             for (Song s : playlistSongs) {
-                addMenuItem(s.getTitle());
+                addMenuItem(s.getName());
             }
         } else {
             addMenuItem("No songs found");
@@ -462,7 +462,7 @@ public class MyPod extends Application {
                         showScreen("Playlists");
                     } else if ("PlaylistSongs".equals(currentScreenName) && currentActivePlaylist != null) {
                         playlists.stream()
-                            .filter(p -> p.getPlaylistId().equals(currentActivePlaylist.getPlaylistId()))
+                            .filter(p -> p.getId().equals(currentActivePlaylist.getId()))
                             .findFirst()
                             .ifPresent(this::openPlaylist);
                     }
@@ -497,7 +497,7 @@ public class MyPod extends Application {
                 .toList();
 
             if (!artistSongs.isEmpty()) {
-                artistSongs.forEach(s -> addMenuItem(s.getTitle()));
+                artistSongs.forEach(s -> addMenuItem(s.getName()));
             } else {
                 addMenuItem("No songs found");
             }
@@ -524,7 +524,7 @@ public class MyPod extends Application {
                     al.getAlbum().getName().equalsIgnoreCase(albumName)).toList();
 
             if (!albumSongs.isEmpty()) {
-                albumSongs.forEach(s -> addMenuItem(s.getTitle()));
+                albumSongs.forEach(s -> addMenuItem(s.getName()));
             } else {
                 addMenuItem("No songs found");
             }
@@ -541,7 +541,7 @@ public class MyPod extends Application {
         currentScreenName = "NowPlaying";
 
         Song currentSong = (songs != null) ? songs.stream()
-            .filter(s -> s.getTitle().equalsIgnoreCase(songTitle))
+            .filter(s -> s.getName().equalsIgnoreCase(songTitle))
             .findFirst()
             .orElse(null) : null;
 
