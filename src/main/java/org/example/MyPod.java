@@ -449,7 +449,10 @@ public class MyPod extends Application {
      * Öppnar det externa fönstret "ItunesPlayList".
      */
     private void openMusicPlayer() {
-        if (this.playlists == null || this.playlists.isEmpty()) return;
+
+        if (this.playlists == null) {
+            this.playlists = new ArrayList<>();
+        }
 
         ItunesPlayList itunesPlayList = new ItunesPlayList(playlistRepo);
 
@@ -497,6 +500,8 @@ public class MyPod extends Application {
             } else {
                 addMenuItem("No songs found");
             }
+        } else {
+            addMenuItem("No songs found");
         }
         updateMenu();
     }
@@ -522,6 +527,8 @@ public class MyPod extends Application {
             } else {
                 addMenuItem("No songs found");
             }
+        } else {
+            addMenuItem("No songs found");
         }
         updateMenu();
     }
