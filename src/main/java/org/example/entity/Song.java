@@ -20,6 +20,8 @@ public class Song {
 
     private Long length;
 
+    private String previewUrl;
+
     @ManyToOne
     @JoinColumn(name = "album_id")
     private Album album;
@@ -30,10 +32,11 @@ public class Song {
     protected Song() {
     }
 
-    public Song(Long songId, String title, Long length, Album album) {
+    public Song(Long songId, String title, Long length, String previewUrl, Album album) {
         this.songId = songId;
         this.title = title;
         this.length = length;
+        this.previewUrl = previewUrl;
         this.album = album;
     }
 
@@ -41,7 +44,7 @@ public class Song {
         if (dto.trackId() == null || dto.trackName() == null) {
             throw new IllegalArgumentException("Required fields (trackId, trackName) cannot be null");
         }
-        return new Song(dto.trackId(), dto.trackName(), dto.trackTimeMillis(), album);
+        return new Song(dto.trackId(), dto.trackName(), dto.trackTimeMillis(), dto.previewUrl(), album);
     }
 
     public String getFormattedLength() {
@@ -84,6 +87,14 @@ public class Song {
 
     public void setLength(Long length) {
         this.length = length;
+    }
+
+    public String getPreviewUrl() {
+        return previewUrl;
+    }
+
+    public void setPreviewUrl(String previewUrl) {
+        this.previewUrl = previewUrl;
     }
 
     public Album getAlbum() {

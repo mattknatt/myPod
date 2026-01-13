@@ -1,6 +1,7 @@
 package org.example;
 
 import jakarta.persistence.EntityManagerFactory;
+import javafx.beans.binding.Bindings;
 import javafx.concurrent.Task;
 import javafx.application.Platform;
 import javafx.application.Application;
@@ -8,6 +9,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.util.Duration;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -15,6 +17,9 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
@@ -66,7 +71,10 @@ public class MyPod extends Application {
     private VBox screenContent;         // Behållaren för texten/listan inuti "skärmen"
     private StackPane myPodScreen;       // Själva skärm-containern
     private ScrollPane scrollPane;      // Gör att vi kan scrolla om listan är lång
-    private boolean isMainMenu = true;  // Flagga för att veta om vi är i huvudmenyn eller en undermeny
+    private boolean isMainMenu = true; // Flagga för att veta om vi är i huvudmenyn eller en undermeny
+
+    private MediaPlayer mediaPlayer;
+    private ProgressBar progressBar;
 
     @Override
     public void start(Stage primaryStage) {
@@ -412,6 +420,9 @@ public class MyPod extends Application {
             }
         }
         else{
+            if (selection.startsWith("No ") && selection.endsWith(" found")) {
+                return;
+            }
             showNowPlaying(selection);
         }
     }
@@ -452,20 +463,21 @@ public class MyPod extends Application {
         ItunesPlayList itunesPlayList = new ItunesPlayList(playlistRepo);
 
         itunesPlayList.setOnUpdate(() -> {
-            this.playlists = playlistRepo.findAll();
-
-            Platform.runLater(() -> {
-                if("Playlists".equals(currentScreenName)){
-                    showScreen("Playlists");
-                } else if ("PlaylistSongs".equals(currentScreenName) && currentActivePlaylist != null) {
-                    playlists.stream()
-                        .filter(p -> p.getPlaylistId().equals(currentActivePlaylist.getPlaylistId()))
-                        .findFirst()
-                        .ifPresent(this::openPlaylist);
-                }
-
-                });
-            });
+                new Thread(() -> {
+                        List<Playlist> updatedPlaylists = playlistRepo.findAll();
+                        Platform.runLater(() -> {
+                                this.playlists = updatedPlaylists;
+                                if ("Playlists".equals(currentScreenName)) {
+                                        showScreen("Playlists");
+                                    } else if ("PlaylistSongs".equals(currentScreenName) && currentActivePlaylist != null) {
+                                        playlists.stream()
+                                                .filter(p -> p.getPlaylistId().equals(currentActivePlaylist.getPlaylistId()))
+                                                .findFirst()
+                                                .ifPresent(this::openPlaylist);
+                                    }
+                            });
+                    }).start();
+             });
 
 
         itunesPlayList.showLibrary(this.playlists);
@@ -560,7 +572,7 @@ public class MyPod extends Application {
         Label albumLabel = new Label(albumName);
         albumLabel.getStyleClass().add("now-playing-album");
 
-        javafx.scene.control.ProgressBar progressBar = new javafx.scene.control.ProgressBar(0.35);
+        progressBar = new ProgressBar(0);
         progressBar.getStyleClass().add("ipod-progress-bar");
 
         // Layout-behållaren
@@ -568,9 +580,53 @@ public class MyPod extends Application {
         layout.getStyleClass().add("now-playing-container");
         layout.getChildren().addAll(header, titleLabel, artistLabel, albumLabel, progressBar);
 
+        layout.setAlignment(Pos.CENTER);
         screenContent.getChildren().add(layout);
-        screenContent.setAlignment(Pos.CENTER);
+
+
+        if (currentSong != null) {
+            playPreview(currentSong.getPreviewUrl());
+        }
     }
+
+    private void playPreview(String url) {
+        try {
+            if (mediaPlayer != null) {
+                mediaPlayer.stop();
+                mediaPlayer.dispose();
+            }
+
+            Media media = new Media(url);
+            mediaPlayer = new MediaPlayer(media);
+
+            mediaPlayer.setOnReady(() -> {
+                Duration total = mediaPlayer.getTotalDuration();
+
+                progressBar.progressProperty().bind(
+                    Bindings.createDoubleBinding(
+                        () -> {
+                            Duration current = mediaPlayer.getCurrentTime();
+                            if (total == null || total.isUnknown() || total.toMillis() == 0) {
+                                return 0.0;
+                            }
+                            return current.toMillis() / total.toMillis();
+                        },
+                        mediaPlayer.currentTimeProperty()
+                    )
+                );
+            });
+
+            mediaPlayer.setOnEndOfMedia(() -> {
+                progressBar.progressProperty().unbind();
+                progressBar.setProgress(1.0);
+            });
+
+            mediaPlayer.play();
+        } catch (Exception e) {
+            System.err.println("Could not play preview: " + e.getMessage());
+        }
+    }
+
 
     /**
      * Initierar databasen och hämtar all data.

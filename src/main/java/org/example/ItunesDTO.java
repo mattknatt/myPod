@@ -15,6 +15,7 @@ public record ItunesDTO(Long artistId,
                         String primaryGenreName,
                         LocalDate releaseDate,
                         Long trackCount,
+                        String previewUrl,
                         Long trackTimeMillis) {
 
     public int releaseYear() {
