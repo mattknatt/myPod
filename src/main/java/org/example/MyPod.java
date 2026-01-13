@@ -458,6 +458,7 @@ public class MyPod extends Application {
 
         itunesPlayList.setOnUpdate(() -> {
             new Thread(() -> {
+                try {
                 List<Playlist> updatedPlaylists = playlistRepo.findAll();
                 Platform.runLater(() -> {
                     this.playlists = updatedPlaylists;
@@ -470,7 +471,11 @@ public class MyPod extends Application {
                             .ifPresent(this::openPlaylist);
                     }
                 });
-            }).start();
+                } catch (Exception e) {
+                    System.err.println("Failed to refresh playlists: " + e.getMessage());
+                }
+            })
+                .start();
         });
 
 
