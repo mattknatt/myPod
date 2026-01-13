@@ -32,6 +32,18 @@ class PlaylistRepoTest extends RepoTest {
     }
 
     @Test
+    void existsByUniqueId_shouldFindSpecificPlaylistIfPresent() {
+        // Given
+        Playlist playlist = playlistRepo.createPlaylist("playlist");
+
+        // When
+        boolean playlistExists = playlistRepo.existsByUniqueId(playlist.getPlaylistId());
+
+        // Then
+        assertThat(playlistExists).isTrue();
+    }
+
+    @Test
     void addSongToPlaylist_shouldPersistRelation() {
         // Given
         Playlist playlist = playlistRepo.createPlaylist("Playlist");
