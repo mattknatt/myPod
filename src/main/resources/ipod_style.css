@@ -1,9 +1,9 @@
-/* --- GEMENSAMMA GRUNDER --- */
+
 .ipod-body {
     -fx-background-color: #D3D3D3;
 }
 
-/* --- MYPOD: SKÄRMEN (iPod-stil) --- */
+/* --- MYPOD: SKÄRMEN  --- */
 .ipod-screen {
     -fx-background-color: white;
     -fx-border-color: #999;
@@ -34,7 +34,7 @@
     -fx-text-fill: #ffffff;
 }
 
-/* --- MYPOD: KLICKHJULET --- */
+/* --- MYPOD: HJULET --- */
 .outer-wheel {
     -fx-fill: linear-gradient(#eee, #ccc);
     -fx-stroke: #888;
@@ -57,7 +57,7 @@
 #ff-button       { -fx-translate-x: 70px; -fx-font-size: 12pt; }
 #rew-button      { -fx-translate-x: -70px; -fx-font-size: 12pt; }
 
-/* --- ITUNES: PANELER & KONTROLLER --- */
+
 .top-panel {
     -fx-background-color: linear-gradient(to bottom, #dcdcdc, #bebebe);
     -fx-border-color: #999;
@@ -67,7 +67,7 @@
 .bottom-panel {
     -fx-background-color: linear-gradient(to bottom, #dcdcdc, #bebebe);
     -fx-border-color: #999;
-    -fx-border-width: 1 0 0 0; /* En mörkare linje i överkant */
+    -fx-border-width: 1 0 0 0;
     -fx-padding: 10;
 }
 
@@ -90,10 +90,10 @@
     -fx-min-height: 30px;
     -fx-max-height: 30px;
 
-    /* Ta bort inre marginaler så tecknet får plats */
+
     -fx-padding: 0;
 
-    /* Centrera tecknet */
+
     -fx-alignment: center;
     -fx-text-alignment: center;
 
@@ -124,3 +124,51 @@
     -fx-background-color: #ebf1f7;
     -fx-control-inner-background: #ebf1f7;
 }
+
+/* --- NOW PLAYING SKÄRMEN --- */
+
+.now-playing-container {
+    -fx-alignment: center;
+    -fx-padding: 15 10 10 10;
+}
+
+.now-playing-header {
+    -fx-font-size: 9px;
+    -fx-text-fill: #666666;
+    -fx-font-weight: bold;
+}
+
+.now-playing-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: black;
+    -fx-text-alignment: center;
+}
+
+.now-playing-artist {
+    -fx-font-size: 13px;
+    -fx-text-fill: #444444;
+}
+
+.now-playing-album {
+    -fx-font-size: 11px;
+    -fx-text-fill: #888888;
+    -fx-font-style: italic;
+}
+
+.ipod-progress-bar {
+    -fx-pref-width: 200px;
+}
+
+.ipod-progress-bar .track {
+    -fx-background-color: #eeeeee;
+    -fx-background-insets: 0;
+    -fx-background-radius: 2;
+}
+
+.ipod-progress-bar .bar {
+    -fx-background-color: #333333; /* Klassisk mörkgrå/svart iPod-färg */
+    -fx-background-insets: 0;
+    -fx-background-radius: 2;
+}
+

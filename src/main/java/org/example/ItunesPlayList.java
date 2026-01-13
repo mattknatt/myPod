@@ -25,6 +25,20 @@ public class ItunesPlayList {
 
     private final PlaylistRepository pri;
 
+
+    /// NY KOD ///
+    private Runnable onUpdateCallback;
+    public void setOnUpdate(Runnable callback) {
+        this.onUpdateCallback = callback;
+    }
+
+    private void refresh() {
+        if(onUpdateCallback != null) {
+            onUpdateCallback.run();
+        }
+    }
+    /// NY KOD SLUT ///
+
     public ItunesPlayList(PlaylistRepository playlistRepository) {
         this.pri = playlistRepository;
     }
@@ -410,6 +424,7 @@ public class ItunesPlayList {
                 Playlist pl = pri.createPlaylist(name);
                 allPlaylistList.add(pl);
             }
+            refresh();
         });
     }
 
@@ -438,6 +453,7 @@ public class ItunesPlayList {
                     new Alert(Alert.AlertType.ERROR, "Kunde inte byta namn: " + ex.getMessage()).showAndWait();
                 }
             }
+            refresh();
         });
     }
 
@@ -449,6 +465,8 @@ public class ItunesPlayList {
         if (sel != null && sel.getPlaylistId() != null && !sel.getPlaylistId().equals(1L) && !sel.getPlaylistId().equals(2L)) {
             pri.deletePlaylist(sel);
             allPlaylistList.remove(sel);
+
+            refresh();
         }
     }
 
@@ -463,6 +481,8 @@ public class ItunesPlayList {
             pri.removeSong(list, sel);
             list.getSongs().remove(sel);
             songTable.getItems().remove(sel);
+
+            refresh();
         }
     }
 
@@ -485,6 +505,8 @@ public class ItunesPlayList {
                     try {
                         pri.addSong(pl, sel);
                         pl.getSongs().add(sel);
+                        refresh();
+
                     } catch (IllegalStateException ex) {
                         new Alert(Alert.AlertType.ERROR, "Could not add song: " + ex.getMessage()).showAndWait();
                     }

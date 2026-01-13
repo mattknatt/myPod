@@ -17,7 +17,8 @@ public record ItunesDTO(Long artistId,
                         LocalDate releaseDate,
                         Long trackCount,
                         Long trackTimeMillis,
-                        URL artworkUrl100) {
+                        URL artworkUrl100,
+                        String previewUrl) {
 
     public int releaseYear() {
         return releaseDate != null ? releaseDate.getYear() : 0;
