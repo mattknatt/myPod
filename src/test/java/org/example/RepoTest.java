@@ -13,7 +13,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.*;
 
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepoTest {
@@ -71,7 +70,5 @@ public class RepoTest {
         songRepo.save(testSong3);
         songRepo.save(testSong4);
         songRepo.save(testSong5);
-
     }
-
 }

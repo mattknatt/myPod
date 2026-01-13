@@ -1,5 +1,6 @@
 package org.example;
 
+import org.example.entity.Artist;
 import org.example.entity.Song;
 import org.junit.jupiter.api.Test;
 
@@ -56,5 +57,18 @@ public class SongRepoTest extends RepoTest {
 
         // Then
         assertThat(testSongs).contains(testSong1, testSong2, testSong3);
+    }
+
+    @Test
+    void findByArtist_shouldReturnEmptyListWhenArtistHasNoSongs() {
+        // Given
+        Artist artistWithNoSongs = new Artist(99L, "Jacub", "Denmark");
+        artistRepo.save(artistWithNoSongs);
+
+        // When
+        List<Song> songs = songRepo.findByArtist(artistWithNoSongs);
+
+        // Then
+        assertThat(songs).isEmpty();
     }
 }

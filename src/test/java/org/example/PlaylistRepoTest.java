@@ -12,6 +12,44 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PlaylistRepoTest extends RepoTest {
 
     @Test
+    void existsByUniqueId_shouldFindSpecificPlaylistIfPresent() {
+        // Given
+        Playlist playlist = playlistRepo.createPlaylist("playlist");
+
+        // When
+        boolean playlistExists = playlistRepo.existsByUniqueId(playlist.getPlaylistId());
+
+        // Then
+        assertThat(playlistExists).isTrue();
+    }
+
+    @Test
+    void findAll_shouldFindAllPlaylists() {
+        // Given
+        Playlist playlist1 = playlistRepo.createPlaylist("Playlist");
+        Playlist playlist2 = playlistRepo.createPlaylist("Another playlist");
+
+        // When
+        List<Playlist> playlists = playlistRepo.findAll();
+
+        // Then
+        assertThat(playlists).contains(playlist1, playlist2);
+    }
+
+    @Test
+    void isSongInPlaylist_shouldConfirmSongInPlaylist() {
+        // Given
+        Playlist playlist = playlistRepo.createPlaylist("Playlist");
+        playlistRepo.addSong(playlist, testSong1);
+
+        // When
+        boolean songInPlaylist = playlistRepo.isSongInPlaylist(playlist, testSong1);
+
+        // Then
+        assertThat(songInPlaylist).isTrue();
+    }
+
+    @Test
     void createPlaylist_shouldPersistAndBeFindable() {
         // Given, when
         Playlist playlist = playlistRepo.createPlaylist("playlist");
@@ -22,15 +60,28 @@ class PlaylistRepoTest extends RepoTest {
     }
 
     @Test
-    void existsByUniqueId_shouldFindSpecificPlaylistIfPresent() {
+    void renamePlaylist_shouldSavePlaylistWithNewName() {
         // Given
-        Playlist playlist = playlistRepo.createPlaylist("playlist");
+        Playlist playlist = playlistRepo.createPlaylist("Playlist");
 
         // When
-        boolean playlistExists = playlistRepo.existsByUniqueId(playlist.getPlaylistId());
+        playlistRepo.renamePlaylist(playlist, "NewPlaylist");
 
         // Then
-        assertThat(playlistExists).isTrue();
+        Playlist reloaded = playlistRepo.findById(playlist.getPlaylistId());
+        assertThat(reloaded.getName()).isEqualTo("NewPlaylist");
+    }
+
+    @Test
+    void deletePlaylist_shouldDeletePlaylist() {
+        // Given
+        Playlist playlist = playlistRepo.createPlaylist("Playlist");
+
+        // When
+        playlistRepo.deletePlaylist(playlist);
+
+        // Then
+        assertThat(playlistRepo.findAll()).isEmpty();
     }
 
     @Test
@@ -82,43 +133,5 @@ class PlaylistRepoTest extends RepoTest {
 
         assertThat(reloaded.getSongs()).hasSize(0);
         assertThat(reloaded.getSongs().contains(testSong1)).isFalse();
-    }
-
-    @Test
-    void deletePlaylist_shouldDeletePlaylist() {
-        // Given
-        Playlist playlist = playlistRepo.createPlaylist("Playlist");
-
-        // When
-        playlistRepo.deletePlaylist(playlist);
-
-        // Then
-        assertThat(playlistRepo.findAll()).isEmpty();
-    }
-
-    @Test
-    void renamePlaylist_shouldSavePlaylistWithNewName() {
-        // Given
-        Playlist playlist = playlistRepo.createPlaylist("Playlist");
-
-        // When
-        playlistRepo.renamePlaylist(playlist, "NewPlaylist");
-
-        // Then
-        Playlist reloaded = playlistRepo.findById(playlist.getPlaylistId());
-        assertThat(reloaded.getName()).isEqualTo("NewPlaylist");
-    }
-
-    @Test
-    void isSongInPlaylist_shouldConfirmSongInPlaylist() {
-        // Given
-        Playlist playlist = playlistRepo.createPlaylist("Playlist");
-        playlistRepo.addSong(playlist, testSong1);
-
-        // When
-        boolean songInPlaylist = playlistRepo.isSongInPlaylist(playlist, testSong1);
-
-        // Then
-        assertThat(songInPlaylist).isTrue();
     }
 }
