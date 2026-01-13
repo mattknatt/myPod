@@ -14,11 +14,11 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
-public class Album {
+public class Album implements DBObject {
 
     @Id
     @Column(name = "album_id")
-    private Long albumId;
+    private Long Id;
 
     private String name;
 
@@ -42,7 +42,7 @@ public class Album {
     }
 
     public Album(Long albumId, String name, String genre, int year, Long trackCount, byte[] cover, Artist artist) {
-        this.albumId = albumId;
+        this.Id = albumId;
         this.name = name;
         this.genre = genre;
         this.year = year;
@@ -64,12 +64,12 @@ public class Album {
         return new Album(dto.collectionId(), dto.collectionName(), dto.primaryGenreName(), dto.releaseYear(), dto.trackCount(), cover,artist);
     }
 
-    public Long getAlbumId() {
-        return albumId;
+    public Long getId() {
+        return Id;
     }
 
-    public void setAlbumId(Long albumId) {
-        this.albumId = albumId;
+    public void setId(Long albumId) {
+        this.Id = albumId;
     }
 
     public String getName() {
@@ -216,7 +216,7 @@ public class Album {
         Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
         if (thisEffectiveClass != oEffectiveClass) return false;
         Album album = (Album) o;
-        return getAlbumId() != null && Objects.equals(getAlbumId(), album.getAlbumId());
+        return getId() != null && Objects.equals(getId(), album.getId());
     }
 
     @Override

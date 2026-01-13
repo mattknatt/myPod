@@ -1,7 +1,6 @@
 package org.example.repo;
 
 import jakarta.persistence.EntityManagerFactory;
-import org.example.PersistenceManager;
 import org.example.entity.Album;
 import org.example.entity.Artist;
 
@@ -18,8 +17,8 @@ public class AlbumRepositoryImpl implements AlbumRepository {
     @Override
     public boolean existsByUniqueId(Album album) {
         return emf.callInTransaction(em ->
-            em.createQuery("select count(a) from Album a where a.albumId = :albumId", Long.class)
-                .setParameter("albumId", album.getAlbumId())
+            em.createQuery("select count(a) from Album a where a.Id = :albumId", Long.class)
+                .setParameter("albumId", album.getId())
                 .getSingleResult() > 0
         );
     }

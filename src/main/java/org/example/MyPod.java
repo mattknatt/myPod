@@ -18,10 +18,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
-import org.example.entity.Album;
-import org.example.entity.Artist;
-import org.example.entity.Playlist;
-import org.example.entity.Song;
+import org.example.entity.*;
 import org.example.repo.*;
 
 import java.util.ArrayList;
@@ -54,7 +51,7 @@ public class MyPod extends Application {
         "Songs", "Artists", "Albums", "Playlists");
 
     // En lista med själva Label-objekten som visas på skärmen (för att kunna markera/avmarkera dem)
-    private final List<Label> menuLabels = new ArrayList<>();
+    private final List<ObjectLabel> menuLabels = new ArrayList<>();
 
     // --- GUI-TILLSTÅND ---
     private int selectedIndex = 0;      // Håller koll på vilket menyval som är markerat just nu
@@ -248,7 +245,7 @@ public class MyPod extends Application {
      */
     private void updateMenu() {
         for (int i = 0; i < menuLabels.size(); i++) {
-            Label label = menuLabels.get(i);
+            Label label = menuLabels.get(i).label();
             if (i == selectedIndex) {
                 label.getStyleClass().add("selected-item"); // Gör texten markerad
                 ensureVisible(label); // Se till att scrollbaren flyttas så vi ser valet
@@ -295,7 +292,7 @@ public class MyPod extends Application {
         switch (screenName) {
             case "Songs" -> {
                 if (songs != null && !songs.isEmpty()) {
-                    songs.forEach(s -> addMenuItem(s.getTitle()));
+                    songs.forEach(s -> addMenuItem(s.getName()));
                 } else addMenuItem("No songs found");
             }
             case "Artists" -> {
@@ -320,11 +317,19 @@ public class MyPod extends Application {
      * Hjälpmetod för att lägga till en rad i listan på skärmen.
      */
     private void addMenuItem(String text) {
-        Label label = new Label(text);
-        label.getStyleClass().add("menu-item");
-        label.setMaxWidth(Double.MAX_VALUE); // Gör att raden fyller hela bredden (snyggare markering)
-        menuLabels.add(label);
-        screenContent.getChildren().add(label);
+        ObjectLabel stringLabel = new ObjectLabel(new Label(text), null);
+        stringLabel.label().getStyleClass().add("menu-item");
+        stringLabel.label().setMaxWidth(Double.MAX_VALUE); // Gör att raden fyller hela bredden (snyggare markering)
+        menuLabels.add(stringLabel);
+        screenContent.getChildren().add(stringLabel.label());
+    }
+
+    private void addMenuItem(DBObject object) {
+        ObjectLabel objectLabel = new ObjectLabel(new Label(object.getName()), object);
+        objectLabel.label().getStyleClass().add("menu-item");
+        objectLabel.label().setMaxWidth(Double.MAX_VALUE); // Gör att raden fyller hela bredden (snyggare markering)
+        menuLabels.add(objectLabel);
+        screenContent.getChildren().add(objectLabel.label());
     }
 
     /**
@@ -385,4 +390,14 @@ public class MyPod extends Application {
             System.err.println("Kunde inte ladda data: " + e.getMessage());
         }
     }
+
+    private record ObjectLabel(
+        Label label,
+        DBObject object){
+
+        public String getText(){
+            return label.getText();
+        }
+    };
+
 }

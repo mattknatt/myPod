@@ -9,16 +9,16 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
-public class Artist {
+public class Artist implements DBObject {
 
     @Id
     @Column(name = "artist_id")
-    private Long artistId;
+    private Long Id;
 
     private String name;
 
     private String country;
-        
+
     @OneToMany(mappedBy = "artist", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Album> album = new ArrayList<>();
 
@@ -26,7 +26,7 @@ public class Artist {
     }
 
     public Artist(Long artistId, String name, String country) {
-        this.artistId = artistId;
+        this.Id = artistId;
         this.name = name;
         this.country = country;
     }
@@ -38,12 +38,12 @@ public class Artist {
         return new Artist(dto.artistId(), dto.artistName(), dto.country());
     }
 
-    public Long getArtistId() {
-        return artistId;
+    public Long getId() {
+        return Id;
     }
 
-    public void setArtistId(Long artistId) {
-        this.artistId = artistId;
+    public void setId(Long artistId) {
+        this.Id = artistId;
     }
 
     public String getName() {
@@ -78,7 +78,7 @@ public class Artist {
         Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
         if (thisEffectiveClass != oEffectiveClass) return false;
         Artist artist = (Artist) o;
-        return getArtistId() != null && Objects.equals(getArtistId(), artist.getArtistId());
+        return getId() != null && Objects.equals(getId(), artist.getId());
     }
 
     @Override

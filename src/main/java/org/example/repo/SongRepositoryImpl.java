@@ -1,7 +1,6 @@
 package org.example.repo;
 
 import jakarta.persistence.EntityManagerFactory;
-import org.example.PersistenceManager;
 import org.example.entity.Album;
 import org.example.entity.Artist;
 import org.example.entity.Song;
@@ -28,8 +27,8 @@ public class SongRepositoryImpl implements SongRepository {
     @Override
     public boolean existsByUniqueId(Song song) {
         try (var em = emf.createEntityManager()) {
-            return em.createQuery("select count(s) from Song s where s.songId = :songId", Long.class)
-                .setParameter("songId", song.getSongId())
+            return em.createQuery("select count(s) from Song s where s.Id = :songId", Long.class)
+                .setParameter("songId", song.getId())
                 .getSingleResult() > 0;
         }
     }
