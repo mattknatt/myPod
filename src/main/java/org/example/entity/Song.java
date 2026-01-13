@@ -20,6 +20,8 @@ public class Song implements DBObject {
 
     private Long length;
 
+    private String previewUrl;
+
     @ManyToOne
     @JoinColumn(name = "album_id")
     private Album album;
@@ -34,6 +36,7 @@ public class Song implements DBObject {
         this.Id = songId;
         this.name = title;
         this.length = length;
+        this.previewUrl = previewUrl;
         this.album = album;
     }
 
@@ -41,7 +44,7 @@ public class Song implements DBObject {
         if (dto.trackId() == null || dto.trackName() == null) {
             throw new IllegalArgumentException("Required fields (trackId, trackName) cannot be null");
         }
-        return new Song(dto.trackId(), dto.trackName(), dto.trackTimeMillis(), album);
+        return new Song(dto.trackId(), dto.trackName(), dto.trackTimeMillis(), dto.previewUrl(), album);
     }
 
     public String getFormattedLength() {
@@ -84,6 +87,14 @@ public class Song implements DBObject {
 
     public void setLength(Long length) {
         this.length = length;
+    }
+
+    public String getPreviewUrl() {
+        return previewUrl;
+    }
+
+    public void setPreviewUrl(String previewUrl) {
+        this.previewUrl = previewUrl;
     }
 
     public Album getAlbum() {
