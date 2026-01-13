@@ -35,9 +35,19 @@ public class ArtistRepoTest extends RepoTest {
     @Test
     void findAll_shouldFindArtists() {
         // Given, When
-
-
+        List<Artist> artists = artistRepo.findAll();
 
         // Then
+        assertThat(artists.contains(testArtist1));
+        assertThat(artists.contains(testArtist2));
+    }
+
+    @Test
+    void count_shouldReturnNumberOfArtists() {
+        // Given, When
+        Long count = artistRepo.count();
+
+        // Then
+        assertThat(count == 2L);
     }
 }
