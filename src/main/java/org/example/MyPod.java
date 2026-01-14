@@ -684,12 +684,10 @@ public class MyPod extends Application {
         progressBar.getStyleClass().add("ipod-progress-bar");
 
         // --- Volume overlay (positioned on top of progress bar) ---
-        volumeBar = new ProgressBar(mediaPlayer != null ? mediaPlayer.getVolume() : 0.5);
-        volumeBar.getStyleClass().add("ipod-volume-bar");
+        ensureVolumeBarExists();
         volumeBar.setOpacity(0); // start hidden
 
         // Stack the volume bar on top of progress bar
-        ensureVolumeBarExists();
         StackPane progressStack = new StackPane(progressBar, volumeBar);
         progressStack.setAlignment(Pos.CENTER);
 
