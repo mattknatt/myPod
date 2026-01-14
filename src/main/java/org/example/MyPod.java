@@ -683,8 +683,6 @@ public class MyPod extends Application {
         volumeBar = new ProgressBar(mediaPlayer != null ? mediaPlayer.getVolume() : 0.5);
         volumeBar.getStyleClass().add("ipod-volume-bar");
         volumeBar.setOpacity(0); // start hidden
-        volumeBar.setPrefWidth(200);
-        volumeBar.setPrefHeight(8);
 
         // Stack the volume bar on top of progress bar
         StackPane progressStack = new StackPane(progressBar, volumeBar);
