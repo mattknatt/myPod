@@ -274,7 +274,7 @@ public class MyPod extends Application {
                 } else if ("ArtistAlbums".equals(currentScreenName)) {
                     showScreen("Artists");
                 } else if ("AlbumSongs".equals(currentScreenName)) {
-                    showScreen("ArtistAlbums");
+                    showScreen("Artists");
                 } else if ("PlaylistSongs".equals(currentScreenName)) {
                     showScreen("Playlists");
                 }
