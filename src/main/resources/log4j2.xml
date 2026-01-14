@@ -1,0 +1,21 @@
+<Configuration status="WARN">
+    <Appenders>
+        <JDBC name="DBAppender" tableName="app_logs">
+            <ConnectionFactory class="org.example.logging.LoggingConnectionFactory" method="getConnection" />
+
+            <Column name="level" pattern="%level"/>
+            <Column name="message" pattern="%message"/>
+            <Column name="error_details" pattern="%throwable"/>
+            <Column name="timestamp" isEventTimestamp="true"/>
+        </JDBC>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="[%d{HH:mm:ss}] %-5level %logger{36} - %msg%n"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="error">
+            <AppenderRef ref="DBAppender"/>
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>

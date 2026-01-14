@@ -5,12 +5,16 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.NoResultException;
 import org.example.entity.Playlist;
 import org.example.entity.Song;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 public class PlaylistRepositoryImpl implements PlaylistRepository {
+
+    private static final Logger logger = LoggerFactory.getLogger(PlaylistRepositoryImpl.class);
 
     private final EntityManagerFactory emf;
 
@@ -21,7 +25,8 @@ public class PlaylistRepositoryImpl implements PlaylistRepository {
     @Override
     public boolean existsByUniqueId(Long id) {
         if (id == null) {
-            return false;
+            logger.error("existsByUniqueId: id is null");
+            throw new IllegalArgumentException("Playlist id cannot be null");
         }
         try (var em = emf.createEntityManager()) {
             return em.createQuery("select count(pl) from Playlist pl where pl.id = :playlistId", Long.class)
@@ -46,6 +51,7 @@ public class PlaylistRepositoryImpl implements PlaylistRepository {
     @Override
     public Playlist findById(Long id) {
         if (id == null) {
+            logger.error("findById: id is null");
             throw new IllegalArgumentException("Playlist id cannot be null");
         }
         try (var em = emf.createEntityManager()) {
@@ -61,7 +67,8 @@ public class PlaylistRepositoryImpl implements PlaylistRepository {
                     .setParameter("id", id)
                     .getSingleResult();
             } catch (NoResultException e) {
-                throw new EntityNotFoundException("Playlist not found with id: " + id);
+                logger.error("findById: Playlist not found with id: {}", id);
+                throw new EntityNotFoundException("Playlist with id " + id + " not found");
             }
         }
     }
@@ -69,7 +76,8 @@ public class PlaylistRepositoryImpl implements PlaylistRepository {
     @Override
     public Set<Song> findSongsInPlaylist(Playlist playlist) {
         if (playlist == null) {
-            throw new IllegalArgumentException("Playlist cannot be null");
+            logger.error("findsongsInPlaylist: playlist is null");
+            throw new IllegalArgumentException("playlist cannot be null");
         }
         return emf.callInTransaction(em -> {
             Playlist managed = em.merge(playlist);
@@ -80,7 +88,8 @@ public class PlaylistRepositoryImpl implements PlaylistRepository {
     @Override
     public boolean isSongInPlaylist(Playlist playlist, Song song) {
         if (playlist == null || song == null) {
-            throw new IllegalArgumentException("Playlist and song cannot be null");
+            logger.error("insongInPlaylist: playlist or song is null");
+            throw new IllegalArgumentException("playlist and song cannot be null");
         }
         try (var em = emf.createEntityManager()) {
             Playlist managed = em.find(Playlist.class, playlist.getId());
@@ -94,7 +103,8 @@ public class PlaylistRepositoryImpl implements PlaylistRepository {
     @Override
     public Playlist createPlaylist(String name) {
         if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("Playlist name cannot be null or empty");
+            logger.error("createPlaylist: name is null or empty");
+            throw new IllegalArgumentException("name cannot be null or empty");
         }
         Playlist playlist = new Playlist(name);
         emf.runInTransaction(em -> em.persist(playlist));
@@ -104,12 +114,14 @@ public class PlaylistRepositoryImpl implements PlaylistRepository {
     @Override
     public void renamePlaylist(Playlist playlist, String newName) {
         if (playlist == null || newName == null || newName.trim().isEmpty()) {
+            logger.error("renamePlaylist: playlist or name is null or empty");
             throw new IllegalArgumentException("Playlist and new name cannot be null or empty");
         }
         emf.runInTransaction(em -> {
             Playlist managed = em.find(Playlist.class, playlist.getId());
             if (managed == null) {
-                throw new IllegalStateException("Playlist not found with id: " + playlist.getId());
+                logger.error("renamePlaylist: playlist not found with id: {}", playlist.getId());
+                throw new IllegalArgumentException("Playlist not found with id: " + playlist.getId());
             }
             managed.setName(newName);
         });
@@ -118,6 +130,7 @@ public class PlaylistRepositoryImpl implements PlaylistRepository {
     @Override
     public void deletePlaylist(Playlist playlist) {
         if (playlist == null) {
+            logger.error("deletePlaylist: playlist is null");
             throw new IllegalArgumentException("Playlist cannot be null");
         }
         emf.runInTransaction(em -> {
@@ -129,18 +142,21 @@ public class PlaylistRepositoryImpl implements PlaylistRepository {
     @Override
     public void addSong(Playlist playlist, Song song) {
         if (playlist == null || song == null) {
+            logger.error("addSong: playlist or song is null");
             throw new IllegalArgumentException("Playlist and song cannot be null");
         }
         emf.runInTransaction(em -> {
             Playlist managedPlaylist =
                 em.find(Playlist.class, playlist.getId());
             if (managedPlaylist == null) {
-                throw new IllegalStateException("Playlist not found with id: " + playlist.getId());
+                logger.error("addSong: playlist not found with id: {}", playlist.getId());
+                throw new IllegalArgumentException("Playlist not found with id: " + playlist.getId());
             }
             Song managedSong =
                 em.find(Song.class, song.getId());
             if (managedSong == null) {
-                throw new IllegalStateException("Song not found with id: " + song.getId());
+                logger.error("addSong: song not found with id: {}", song.getId());
+                throw new IllegalArgumentException("Song not found with id: " + song.getId());
             }
             managedPlaylist.addSong(managedSong);
         });
@@ -149,19 +165,22 @@ public class PlaylistRepositoryImpl implements PlaylistRepository {
     @Override
     public void addSongs(Playlist playlist, Collection<Song> songs) {
         if (playlist == null || songs == null) {
+            logger.error("addSongs: playlist or songs is null");
             throw new IllegalArgumentException("Playlist and songs cannot be null");
         }
         emf.runInTransaction(em -> {
             Playlist managedPlaylist =
                 em.find(Playlist.class, playlist.getId());
             if (managedPlaylist == null) {
-                throw new IllegalStateException("Playlist not found with id: " + playlist.getId());
+                logger.error("addSongs: playlist not found with id: {}", playlist.getId());
+                throw new IllegalArgumentException("Playlist not found with id: " + playlist.getId());
             }
             for (Song s : songs) {
                 Song managedSong =
                     em.find(Song.class, s.getId());
                 if (managedSong == null) {
-                    throw new IllegalStateException("Song not found with id: " + s.getId());
+                    logger.error("addSongs: song not found with id: {}", s.getId());
+                    throw new IllegalArgumentException("Song not found with id: " + s.getId());
                 }
                 managedPlaylist.addSong(managedSong);
             }
@@ -171,6 +190,7 @@ public class PlaylistRepositoryImpl implements PlaylistRepository {
     @Override
     public void removeSong(Playlist playlist, Song song) {
         if (playlist == null || song == null) {
+            logger.error("removeSong: playlist or song is null");
             throw new IllegalArgumentException("Playlist and song cannot be null");
         }
         emf.runInTransaction(em -> {
@@ -178,13 +198,15 @@ public class PlaylistRepositoryImpl implements PlaylistRepository {
                 em.find(Playlist.class, playlist.getId());
 
             if (managedPlaylist == null) {
-                throw new IllegalStateException("Playlist not found with id: " + playlist.getId());
+                logger.error("removeSong: playlist not found with id: {}", playlist.getId());
+                throw new IllegalArgumentException("Playlist not found with id: " + playlist.getId());
             }
             Song managedSong =
                 em.find(Song.class, song.getId());
 
             if (managedSong == null) {
-                throw new IllegalStateException("Song not found with id: " + song.getId());
+                logger.error("removeSong: song not found with id: {}", song.getId());
+                throw new IllegalArgumentException("Song not found with id: " + song.getId());
             }
             managedPlaylist.removeSong(managedSong);
         });
