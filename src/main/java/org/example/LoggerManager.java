@@ -7,9 +7,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class loggerManager {
+public class LoggerManager {
 
-    private static final Logger logger = LoggerFactory.getLogger(loggerManager.class);
+    private static final Logger logger = LoggerFactory.getLogger(LoggerManager.class);
 
     // JDBC connection details
     private static final String JDBC_URL = "jdbc:mysql://localhost:3306/";
@@ -35,21 +35,22 @@ public class loggerManager {
 
                 // Create table if it does not exist
                 String createTableSQL = """
-                       CREATE TABLE IF NOT EXISTS logs (
-                       id bigserial NOT NULL,
-                       log_date_time timestamp NULL,
-                       "level" varchar(255) NULL,
-                       clazz varchar(255) NULL,
-                       log text NULL,
-                       "exception" text NULL,
-                       job_run_id varchar(255) NULL,
-                       created_by varchar(50) NOT NULL DEFAULT 'system'::character varying,
-                       created_date timestamp NOT NULL DEFAULT now(),
-                       last_modified_by varchar(50) NULL,
-                       last_modified_date timestamp NULL,
-                       CONSTRAINT log_pkey PRIMARY KEY (id)
-                        )
-                       """;
+                    CREATE TABLE IF NOT EXISTS logs (
+                    id BIGINT NOT NULL AUTO_INCREMENT,
+                    log_date_time TIMESTAMP NULL,
+                    `level` VARCHAR(255) NULL,
+                    clazz VARCHAR(255) NULL,
+                    log TEXT NULL,
+                    `exception` TEXT NULL,
+                    job_run_id VARCHAR(255) NULL,
+                    created_by VARCHAR(50)
+                    NOT NULL DEFAULT 'system',
+                    created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    last_modified_by VARCHAR(50) NULL,
+                    last_modified_date TIMESTAMP NULL,
+                    PRIMARY KEY (id)
+                    )
+                    """;
                 stmt.executeUpdate(createTableSQL);
                 System.out.println("Table checked/created successfully.");
             }

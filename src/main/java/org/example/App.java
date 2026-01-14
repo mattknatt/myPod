@@ -3,8 +3,8 @@ package org.example;
 import javafx.application.Application;
 
 public class App {
-    static void main(String[] args) {
-        loggerManager.setup();
+    public static void main(String[] args) {
+        LoggerManager.setup();
         Application.launch(MyPod.class, args);
     }
 }
