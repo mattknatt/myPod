@@ -25,6 +25,11 @@ public class Artist implements DBObject {
     protected Artist() {
     }
 
+    public Artist(String name, String country) {
+        this.name = name;
+        this.country = country;
+    }
+
     public Artist(Long artistId, String name, String country) {
         this.id = artistId;
         this.name = name;

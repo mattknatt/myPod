@@ -10,7 +10,7 @@ public class AlbumRepositoryImpl implements AlbumRepository {
 
     private final EntityManagerFactory emf;
 
-    public AlbumRepositoryImpl (EntityManagerFactory emf) {
+    public AlbumRepositoryImpl(EntityManagerFactory emf) {
         this.emf = emf;
     }
 
@@ -21,6 +21,13 @@ public class AlbumRepositoryImpl implements AlbumRepository {
                 .setParameter("albumId", album.getId())
                 .getSingleResult() > 0
         );
+    }
+
+    @Override
+    public Long count() {
+        return emf.callInTransaction(em ->
+            em.createQuery("select count(a) from Album a", Long.class)
+                .getSingleResult());
     }
 
     @Override
@@ -51,12 +58,5 @@ public class AlbumRepositoryImpl implements AlbumRepository {
                 .setParameter("genre", genre)
                 .getResultList()
         );
-    }
-
-    @Override
-    public Long count() {
-        return emf.callInTransaction(em ->
-            em.createQuery("select count(a) from Album a", Long.class)
-                .getSingleResult());
     }
 }

@@ -24,6 +24,7 @@ public class Album implements DBObject {
 
     private String genre;
 
+    @Column(name = "release_year")
     private int year;
 
     private Long trackCount;

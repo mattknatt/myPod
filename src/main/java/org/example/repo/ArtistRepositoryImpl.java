@@ -9,7 +9,7 @@ public class ArtistRepositoryImpl implements ArtistRepository {
 
     private final EntityManagerFactory emf;
 
-    public ArtistRepositoryImpl (EntityManagerFactory emf){
+    public ArtistRepositoryImpl(EntityManagerFactory emf) {
         this.emf = emf;
     }
 
@@ -23,6 +23,13 @@ public class ArtistRepositoryImpl implements ArtistRepository {
     }
 
     @Override
+    public Long count() {
+        return emf.callInTransaction(em ->
+            em.createQuery("select count(a) from Artist a", Long.class)
+                .getSingleResult());
+    }
+
+    @Override
     public void save(Artist artist) {
         emf.runInTransaction(em -> em.persist(artist));
     }
@@ -32,12 +39,5 @@ public class ArtistRepositoryImpl implements ArtistRepository {
         return emf.callInTransaction(em ->
             em.createQuery("select a from Artist a", Artist.class)
                 .getResultList());
-    }
-
-    @Override
-    public Long count() {
-        return emf.callInTransaction(em ->
-            em.createQuery("select count(a) from Artist a", Long.class)
-                .getSingleResult());
     }
 }
