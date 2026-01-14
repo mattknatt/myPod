@@ -217,12 +217,40 @@ public class MyPod extends Application {
         Label rew = new Label("⏮");
         rew.getStyleClass().add("wheel-text");
         rew.setId("rew-button");
-        Label play = new Label("▶");
-        play.getStyleClass().add("wheel-text-play");
+        /// NY KOD ////////////////////////////////////////////
+        // --- NY PLAY/PAUSE-FUNKTION ---
+        Label playPauseLabel = new Label("▶/⏸");
+        playPauseLabel.getStyleClass().add("wheel-text-play");
 
-        wheel.getChildren().addAll(outerWheel, centerButton, menu, ff, rew, play);
+        playPauseLabel.setFocusTraversable(true);
+
+        playPauseLabel.setOnMouseClicked(e ->
+            playPauseFunction());
+
+        playPauseLabel.setOnKeyPressed(e ->{
+            if (e.getCode() == KeyCode.SPACE) {
+                playPauseFunction();
+            }
+        });
+
+        wheel.getChildren().addAll(outerWheel, centerButton, menu, ff, rew, playPauseLabel);
         return wheel;
     }
+
+    private void playPauseFunction(){
+        if(mediaPlayer != null) {
+            if(mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+                mediaPlayer.pause();
+
+            } else  {
+                mediaPlayer.play();
+
+            }
+        }
+
+    }
+
+
 
     /**
      * Hanterar tangentbordsnavigering (Upp, Ner, Enter, Escape).

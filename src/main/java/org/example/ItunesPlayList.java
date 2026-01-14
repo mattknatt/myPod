@@ -55,7 +55,7 @@ public class ItunesPlayList {
 
     // Textfält för den "digitala displayen" högst upp
     private Text lcdTitle = new Text("myTunes");
-    private Text lcdArtist = new Text("Välj bibliotek eller spellista");
+    private Text lcdArtist = new Text("Choose library or playlist");
 
     /**
      * Bygger upp hela gränssnittet och visar fönstret.
@@ -89,7 +89,7 @@ public class ItunesPlayList {
 
         // Sökfältet
         TextField searchField = new TextField();
-        searchField.setPromptText("Sök...");
+        searchField.setPromptText("Search...");
         searchField.getStyleClass().add("itunes-search");
 
         // Lyssnare: När texten ändras i sökfältet, kör metoden filterSongs()
@@ -125,7 +125,7 @@ public class ItunesPlayList {
 
             ContextMenu contextMenu = new ContextMenu();
 
-            MenuItem renameItem = new MenuItem("Byt Namn");
+            MenuItem renameItem = new MenuItem("Change name");
             renameItem.setOnAction(event -> {
                 Playlist selected = cell.getItem();
                 if (selected != null) {
@@ -135,7 +135,7 @@ public class ItunesPlayList {
 
             });
 
-            MenuItem deleteItem = new MenuItem("Ta Bort");
+            MenuItem deleteItem = new MenuItem("Remove");
             deleteItem.setOnAction(event -> {
                 Playlist selected = cell.getItem();
                 if (selected != null) {
@@ -184,8 +184,8 @@ public class ItunesPlayList {
         btnAddList.getStyleClass().add("list-control-button");
         Button btnDeleteList = new Button("-");
         btnDeleteList.getStyleClass().add("list-control-button");
-        Button btnMoveToPlaylist = new Button("Lägg till Låt i spellista");
-        Button btnRemoveSong = new Button("Ta bort låt från lista");
+        Button btnMoveToPlaylist = new Button("Add song to playlist");
+        Button btnRemoveSong = new Button("Remove song from playlist");
 
         // Koppla knapparna till metoder
         btnAddList.setOnAction(e -> createNewPlaylist());
@@ -248,14 +248,14 @@ public class ItunesPlayList {
      */
     private void setupTable() {
         // Skapa kolumner
-        TableColumn<Song, String> titleCol = new TableColumn<>("Namn");
+        TableColumn<Song, String> titleCol = new TableColumn<>("Name");
         // Berätta för kolumnen vilket fält i DisplaySong den ska läsa från (name)
         titleCol.setCellValueFactory(d -> {
             Song s = d.getValue();
             if (s.getName() != null) {
                 return new SimpleStringProperty(s.getName());
             }
-            return new SimpleStringProperty("Okänd titel");
+            return new SimpleStringProperty("Unknown title");
         });
 
         TableColumn<Song, String> artistCol = new TableColumn<>("Artist");
@@ -264,7 +264,7 @@ public class ItunesPlayList {
             if (s.getAlbum() != null && s.getAlbum().getArtist() != null && s.getAlbum().getArtist().getName() != null) {
                 return new SimpleStringProperty(s.getAlbum().getArtist().getName());
             }
-            return new SimpleStringProperty("Okänd artist");
+            return new SimpleStringProperty("Unknown artist");
         });
 
         TableColumn<Song, String> albumCol = new TableColumn<>("Album");
@@ -273,16 +273,16 @@ public class ItunesPlayList {
             if (s.getAlbum() != null && s.getAlbum().getName() != null) {
                 return new SimpleStringProperty(s.getAlbum().getName());
             }
-            return new SimpleStringProperty("Okänt album");
+            return new SimpleStringProperty("Unknown album");
         });
 
-        TableColumn<Song, String> timeCol = new TableColumn<>("Längd");
+        TableColumn<Song, String> timeCol = new TableColumn<>("Time");
         timeCol.setCellValueFactory(d -> {
             Song s = d.getValue();
             if (s.getFormattedLength() != null) {
                 return new SimpleStringProperty(s.getFormattedLength());
             }
-            return new SimpleStringProperty("Okänd längd");
+            return new SimpleStringProperty("Unknown time");
         });
 
         songTable.getColumns().setAll(titleCol, artistCol, albumCol, timeCol);
@@ -295,7 +295,7 @@ public class ItunesPlayList {
         songTable.getSelectionModel().selectedItemProperty().addListener((obs, old, newVal) -> {
             if (newVal != null) {
                 lcdTitle.setText(newVal.getName());
-                String artistName = "Okänd artist";
+                String artistName = "Unknown artist";
                 if (newVal.getAlbum() != null && newVal.getAlbum().getArtist() != null && newVal.getAlbum().getArtist().getName() != null) {
                     artistName = newVal.getAlbum().getArtist().getName();
                 }
@@ -314,8 +314,8 @@ public class ItunesPlayList {
                 }
             });
 
-            Menu addSongSubMenu = new Menu("Lägg till i spellistan");
-            MenuItem removeSongItem = new MenuItem("Ta bort från Spellistan");
+            Menu addSongSubMenu = new Menu("Add to playlist");
+            MenuItem removeSongItem = new MenuItem("Remove from playlist");
 
             removeSongItem.setOnAction(e -> {
                 removeSelectedSong();
@@ -339,7 +339,7 @@ public class ItunesPlayList {
                                     pl.getSongs().add(selectedSong);
                                 }
                             } catch (IllegalStateException ex) {
-                                new Alert(Alert.AlertType.ERROR, "Kunde inte lägga till låten: " + ex.getMessage()).showAndWait();
+                                new Alert(Alert.AlertType.ERROR, "Failed to add son: " + ex.getMessage()).showAndWait();
                             }
                         });
                         addSongSubMenu.getItems().add(playListItem);
@@ -347,7 +347,7 @@ public class ItunesPlayList {
                 }
 
                 if (addSongSubMenu.getItems().isEmpty()) {
-                    MenuItem emptyItem = new MenuItem("Inga spellistor tillgängliga");
+                    MenuItem emptyItem = new MenuItem("No playlists available");
                     emptyItem.setDisable(true);
                     addSongSubMenu.getItems().add(emptyItem);
                 }
@@ -409,11 +409,11 @@ public class ItunesPlayList {
      * Visar en dialogruta för att skapa en ny spellista.
      */
     private void createNewPlaylist() {
-        TextInputDialog d = new TextInputDialog("Ny lista");
+        TextInputDialog d = new TextInputDialog("New playlist");
         // Här ändrar du fönstrets titel och text
-        d.setTitle("Skapa ny spellista");           // Ersätter "Bekräftelse"
-        d.setHeaderText("Ange namn på spellista");  // Rubriken inuti rutan
-        d.setContentText("Namn:");                  // Texten bredvid inmatningsfältet
+        d.setTitle("Create new playlist");           // Ersätter "Bekräftelse"
+        d.setHeaderText("Enter playlist name");  // Rubriken inuti rutan
+        d.setContentText("Name:");                  // Texten bredvid inmatningsfältet
 
         d.showAndWait().ifPresent(name -> {
             if (!name.trim().isEmpty()) {
@@ -434,10 +434,10 @@ public class ItunesPlayList {
             return;
         }
 
-        TextInputDialog d = new TextInputDialog("Ändra namn");
-        d.setTitle("Byt namn på spellista");
-        d.setHeaderText("Ändra namn på spellistan");
-        d.setContentText("Nytt namn:");
+        TextInputDialog d = new TextInputDialog("Rename");
+        d.setTitle("Rename playlist");
+        d.setHeaderText("Rename playlist");
+        d.setContentText("New name:");
 
         d.showAndWait().ifPresent(newName -> {
             if (!newName.trim().isEmpty()) {
@@ -446,7 +446,7 @@ public class ItunesPlayList {
                     sel.setName(newName);
                     sourceList.refresh();
                 } catch (IllegalStateException ex) {
-                    new Alert(Alert.AlertType.ERROR, "Kunde inte byta namn: " + ex.getMessage()).showAndWait();
+                    new Alert(Alert.AlertType.ERROR, "Failed to rename: " + ex.getMessage()).showAndWait();
                 }
             }
             refresh();

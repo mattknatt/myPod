@@ -65,12 +65,12 @@ public class DatabaseInitializer {
         }
 
         if (!playlistRepo.existsByUniqueId(1L)) { // Finns det en playlist borde det vara "Bibliotek"
-            Playlist library = playlistRepo.createPlaylist("Bibliotek");
+            Playlist library = playlistRepo.createPlaylist("Library");
             playlistRepo.addSongs(library, songRepo.findAll());
             //Lägger bara till låtar som fanns innan listan, om fler "laddas ner" behövs de manuellt läggas till
         }
         if (!playlistRepo.existsByUniqueId(2L)) { // Finns det två playlist borde den andra vara "Favoriter"
-            playlistRepo.createPlaylist("Favoriter");
+            playlistRepo.createPlaylist("Favorites");
         }
     }
 }
