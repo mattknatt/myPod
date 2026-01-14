@@ -411,7 +411,7 @@ public class MyPod extends Application {
 
             Playlist selectedPlaylist = playlists.stream()
                 .filter(p -> p.getId()
-                    .equals(selection.object.getId()))
+                    .equals(selection.object().getId()))
                 .findFirst().orElse(null);
 
             if (selectedPlaylist != null) {
@@ -502,6 +502,12 @@ public class MyPod extends Application {
         titleLabel.getStyleClass().add("screen-title");
         screenContent.getChildren().add(titleLabel);
 
+        if (selection.object() == null) {
+            addMenuItem("No songs found");
+            updateMenu();
+            return;
+        }
+
         if (songs != null && !songs.isEmpty()) {
             List<Song> artistSongs = songs.stream()
                 .filter(s -> s.getAlbum() != null &&
@@ -530,6 +536,12 @@ public class MyPod extends Application {
         Label titleLabel = new Label(selection.getText());
         titleLabel.getStyleClass().add("screen-title");
         screenContent.getChildren().add(titleLabel);
+
+        if (selection.object() == null) {
+            addMenuItem("No songs found");
+            updateMenu();
+            return;
+        }
 
         if (songs != null && !songs.isEmpty()) {
             List<Song> albumSongs = songs.stream()
