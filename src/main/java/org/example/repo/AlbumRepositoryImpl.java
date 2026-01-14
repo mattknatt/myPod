@@ -17,8 +17,8 @@ public class AlbumRepositoryImpl implements AlbumRepository {
     @Override
     public boolean existsByUniqueId(Album album) {
         return emf.callInTransaction(em ->
-            em.createQuery("select count(a) from Album a where a.albumId = :albumId", Long.class)
-                .setParameter("albumId", album.getAlbumId())
+            em.createQuery("select count(a) from Album a where a.id = :albumId", Long.class)
+                .setParameter("albumId", album.getId())
                 .getSingleResult() > 0
         );
     }

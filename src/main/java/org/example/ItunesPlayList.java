@@ -255,8 +255,8 @@ public class ItunesPlayList {
         // Berätta för kolumnen vilket fält i DisplaySong den ska läsa från (name)
         titleCol.setCellValueFactory(d -> {
             Song s = d.getValue();
-            if (s.getTitle() != null) {
-                return new SimpleStringProperty(s.getTitle());
+            if (s.getName() != null) {
+                return new SimpleStringProperty(s.getName());
             }
             return new SimpleStringProperty("Okänd titel");
         });
@@ -297,7 +297,7 @@ public class ItunesPlayList {
         // Lyssnare: När man klickar på en rad i tabellen -> Uppdatera LCD-displayen
         songTable.getSelectionModel().selectedItemProperty().addListener((obs, old, newVal) -> {
             if (newVal != null) {
-                lcdTitle.setText(newVal.getTitle());
+                lcdTitle.setText(newVal.getName());
                 String artistName = "Okänd artist";
                 if (newVal.getAlbum() != null && newVal.getAlbum().getArtist() != null && newVal.getAlbum().getArtist().getName() != null) {
                     artistName = newVal.getAlbum().getArtist().getName();
@@ -332,7 +332,7 @@ public class ItunesPlayList {
                 if (selectedSong != null && !allPlaylistList.isEmpty()) {
                     for (Playlist pl : allPlaylistList) {
                         // Hoppa över biblioteket/huvudlistan om id är 1
-                        if (pl.getPlaylistId() != null && pl.getPlaylistId().equals(1L)) continue;
+                        if (pl.getId() != null && pl.getId().equals(1L)) continue;
 
                         MenuItem playListItem = new MenuItem(pl.getName());
                         playListItem.setOnAction(e -> {
@@ -356,7 +356,7 @@ public class ItunesPlayList {
                 }
 
                 Playlist currentList = sourceList.getSelectionModel().getSelectedItem();
-                removeSongItem.setVisible(currentList != null && currentList.getPlaylistId() != null && !currentList.getPlaylistId().equals(1L));
+                removeSongItem.setVisible(currentList != null && currentList.getId() != null && !currentList.getId().equals(1L));
             });
 
             contextMenu.getItems().addAll(addSongSubMenu, new SeparatorMenuItem(), removeSongItem);
@@ -380,7 +380,7 @@ public class ItunesPlayList {
     private void filterSongs(String searchText) {
         Playlist selectedPlaylist = sourceList.getSelectionModel().getSelectedItem();
         if (selectedPlaylist == null) return;
-        Long currentList = selectedPlaylist.getPlaylistId();
+        Long currentList = selectedPlaylist.getId();
 
         // Hämta originaldatan för den valda spellistan
         ObservableList<Song> masterData = FXCollections.observableArrayList(pri.findById(currentList).getSongs());
@@ -395,7 +395,7 @@ public class ItunesPlayList {
         FilteredList<Song> filteredData = new FilteredList<>(masterData, song -> {
             String filter = searchText.toLowerCase();
             // Returnera true om sökordet finns i namn, artist eller album
-            boolean titleMatch = song.getTitle() != null && song.getTitle().toLowerCase().contains(filter);
+            boolean titleMatch = song.getName() != null && song.getName().toLowerCase().contains(filter);
             boolean artistMatch = song.getAlbum() != null &&
                 song.getAlbum().getArtist() != null &&
                 song.getAlbum().getArtist().getName() != null &&
@@ -434,7 +434,7 @@ public class ItunesPlayList {
     private void renameSelectedPlaylist() {
         Playlist sel = sourceList.getSelectionModel().getSelectedItem();
 
-        if (sel == null || sel.getPlaylistId() == null || sel.getPlaylistId().equals(1L) || sel.getPlaylistId().equals(2L)) {
+        if (sel == null || sel.getId() == null || sel.getId().equals(1L) || sel.getId().equals(2L)) {
             return;
         }
 
@@ -462,7 +462,7 @@ public class ItunesPlayList {
      */
     private void deleteSelectedPlaylist() {
         Playlist sel = sourceList.getSelectionModel().getSelectedItem();
-        if (sel != null && sel.getPlaylistId() != null && !sel.getPlaylistId().equals(1L) && !sel.getPlaylistId().equals(2L)) {
+        if (sel != null && sel.getId() != null && !sel.getId().equals(1L) && !sel.getId().equals(2L)) {
             pri.deletePlaylist(sel);
             allPlaylistList.remove(sel);
 
@@ -477,7 +477,7 @@ public class ItunesPlayList {
         Song sel = songTable.getSelectionModel().getSelectedItem();
         Playlist list = sourceList.getSelectionModel().getSelectedItem();
         // Skydd: Man får inte ta bort låtar direkt från biblioteket i denna vy
-        if (sel != null && list != null && list.getPlaylistId() != null && !list.getPlaylistId().equals(1L)) {
+        if (sel != null && list != null && list.getId() != null && !list.getId().equals(1L)) {
             pri.removeSong(list, sel);
             list.getSongs().remove(sel);
             songTable.getItems().remove(sel);
@@ -495,7 +495,7 @@ public class ItunesPlayList {
 
         ContextMenu menu = new ContextMenu();
         for (Playlist pl : allPlaylistList) {
-            if (pl.getPlaylistId() != null && pl.getPlaylistId().equals(1L))
+            if (pl.getId() != null && pl.getId().equals(1L))
                 continue; // Man kan inte lägga till i "Bibliotek" (det är källan)
 
             MenuItem itm = new MenuItem(pl.getName());

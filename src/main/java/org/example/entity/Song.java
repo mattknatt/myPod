@@ -4,19 +4,19 @@ import jakarta.persistence.*;
 import org.example.ItunesDTO;
 import org.hibernate.proxy.HibernateProxy;
 
-import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
 @Entity
-public class Song {
+public class Song implements DBObject {
 
     @Id
     @Column(name = "song_id")
-    private Long songId;
+    private Long id;
 
-    private String title;
+    @Column(name = "title")
+    private String name;
 
     private Long length;
 
@@ -32,9 +32,9 @@ public class Song {
     protected Song() {
     }
 
-    public Song(Long songId, String title, Long length, String previewUrl, Album album) {
-        this.songId = songId;
-        this.title = title;
+    public Song(Long songId, String title, Long length, String previewUrl,Album album) {
+        this.id = songId;
+        this.name = title;
         this.length = length;
         this.previewUrl = previewUrl;
         this.album = album;
@@ -65,20 +65,20 @@ public class Song {
         this.playlist = playlist;
     }
 
-    public Long getSongId() {
-        return songId;
+    public Long getId() {
+        return id;
     }
 
-    public void setSongId(Long id) {
-        this.songId = id;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public String getTitle() {
-        return title;
+    public String getName() {
+        return name;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setName(String title) {
+        this.name = title;
     }
 
     public Long getLength() {
@@ -113,7 +113,7 @@ public class Song {
         Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
         if (thisEffectiveClass != oEffectiveClass) return false;
         Song song = (Song) o;
-        return getSongId() != null && Objects.equals(getSongId(), song.getSongId());
+        return getId() != null && Objects.equals(getId(), song.getId());
     }
 
     @Override
@@ -124,8 +124,8 @@ public class Song {
     @Override
     public String toString() {
         return getClass().getSimpleName() + "(" +
-            "songId = " + songId + ", " +
-            "title = " + title + ", " +
+            "songId = " + id + ", " +
+            "title = " + name + ", " +
             "length = " + length + ")";
     }
 }

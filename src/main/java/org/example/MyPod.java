@@ -25,15 +25,20 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import org.example.entity.Album;
 import org.example.entity.Artist;
+import org.example.entity.DBObject;
 import org.example.entity.Playlist;
 import org.example.entity.Song;
-import org.example.repo.*;
+import org.example.repo.SongRepository;
+import org.example.repo.AlbumRepository;
+import org.example.repo.ArtistRepository;
+import org.example.repo.PlaylistRepository;
+import org.example.repo.PlaylistRepositoryImpl;
+import org.example.repo.ArtistRepositoryImpl;
+import org.example.repo.AlbumRepositoryImpl;
+import org.example.repo.SongRepositoryImpl;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static java.util.stream.Collectors.toList;
-
 /**
  * Huvudklassen för applikationen "MyPod".
  * Denna klass bygger upp GUI:t (simulerar en iPod) och hanterar navigering.
@@ -64,7 +69,7 @@ public class MyPod extends Application {
         "Songs", "Artists", "Albums", "Playlists");
 
     // En lista med själva Label-objekten som visas på skärmen (för att kunna markera/avmarkera dem)
-    private final List<Label> menuLabels = new ArrayList<>();
+    private final List<ObjectLabel> menuLabels = new ArrayList<>();
 
     // --- GUI-TILLSTÅND ---
     private int selectedIndex = 0;      // Håller koll på vilket menyval som är markerat just nu
@@ -215,7 +220,6 @@ public class MyPod extends Application {
      */
     private void setupNavigation(Scene scene) {
         scene.setOnKeyPressed(event -> {
-            /// Ny kod //
             if (event.getCode() == KeyCode.ESCAPE) {
 
                 if ("NowPlaying".equals(currentScreenName)) {
@@ -258,7 +262,7 @@ public class MyPod extends Application {
                     showScreen(mainMenu.get(selectedIndex));
                 } else {
                     // Om vi är i en lista, hantera valet (spela låt etc)
-                    handleSelection(menuLabels.get(selectedIndex).getText());
+                    handleSelection(menuLabels.get(selectedIndex));
                 }
                 return;
             }
@@ -276,12 +280,11 @@ public class MyPod extends Application {
      */
     private void updateMenu() {
         for (int i = 0; i < menuLabels.size(); i++) {
-            Label label = menuLabels.get(i);
             if (i == selectedIndex) {
-                label.getStyleClass().add("selected-item"); // Gör texten markerad
-                ensureVisible(label); // Se till att scrollbaren flyttas så vi ser valet
+                menuLabels.get(i).label().getStyleClass().add("selected-item"); // Gör texten markerad
+                ensureVisible(menuLabels.get(i).label()); // Se till att scrollbaren flyttas så vi ser valet
             } else {
-                label.getStyleClass().remove("selected-item"); // Ta bort markering
+                menuLabels.get(i).label().getStyleClass().remove("selected-item"); // Ta bort markering
             }
         }
     }
@@ -325,24 +328,24 @@ public class MyPod extends Application {
         switch (screenName) {
             case "Songs" -> {
                 if (songs != null && !songs.isEmpty()) {
-                    songs.forEach(s -> addMenuItem(s.getTitle()));
+                    songs.forEach(this::addMenuItem);
                 } else addMenuItem("No songs found");
             }
             case "Artists" -> {
                 if (artists != null && !artists.isEmpty()) {
-                    artists.forEach(a -> addMenuItem(a.getName()));
+                    artists.forEach(this::addMenuItem);
                 } else addMenuItem("No artists found");
             }
             case "Albums" -> {
                 if (albums != null && !albums.isEmpty()) {
-                    albums.forEach(al -> addMenuItem(al.getName()));
+                    albums.forEach(this::addMenuItem);
                 } else addMenuItem("No albums found");
             }
             /// NY KOD ///
             case "Playlists" -> {
                 addMenuItem("Edit Playlists");
                 if (playlists != null && !playlists.isEmpty()) {
-                    playlists.forEach(pl -> addMenuItem(pl.getName()));
+                    playlists.forEach(this::addMenuItem);
                 } else addMenuItem("No playlists found");
                 ///  SLUT NY KOD ///
             }
@@ -354,16 +357,28 @@ public class MyPod extends Application {
      * Hjälpmetod för att lägga till en rad i listan på skärmen.
      */
     private void addMenuItem(String text) {
-        Label label = new Label(text);
-        label.getStyleClass().add("menu-item");
-        label.setMaxWidth(Double.MAX_VALUE); // Gör att raden fyller hela bredden (snyggare markering)
+        ObjectLabel stringLabel = new ObjectLabel(new Label(text), null);
+        stringLabel.label().getStyleClass().add("menu-item");
+        stringLabel.label().setMaxWidth(Double.MAX_VALUE); // Gör att raden fyller hela bredden (snyggare markering)
 
         if ("Edit Playlists".equals(text)) {
-            label.setStyle("-fx-font-weight: bold; -fx-underline: true;");
+            stringLabel.label().setStyle("-fx-font-weight: bold; -fx-underline: true;");
         }
 
-        menuLabels.add(label);
-        screenContent.getChildren().add(label);
+        menuLabels.add(stringLabel);
+        screenContent.getChildren().add(stringLabel.label());
+    }
+
+    /**
+     * Hjälpmetod för att lägga till en rad i listan på skärmen som pekar på ett object
+     */
+    private void addMenuItem(DBObject object) {
+        ObjectLabel objectLabel = new ObjectLabel(new Label(object.getName()), object);
+        objectLabel.label().getStyleClass().add("menu-item");
+        objectLabel.label().setMaxWidth(Double.MAX_VALUE); // Gör att raden fyller hela bredden (snyggare markering)
+
+        menuLabels.add(objectLabel);
+        screenContent.getChildren().add(objectLabel.label());
     }
 
     /**
@@ -388,30 +403,34 @@ public class MyPod extends Application {
     /**
      * Vad som händer när man trycker Enter på en låt/artist.
      */
-    private void handleSelection(String selection) {
+    private void handleSelection(ObjectLabel selection) {
         // Här kan du lägga till logik för att spela låten eller öppna albumet
-        System.out.println("User selected: " + selection);
+        System.out.println("User selected: " + selection.getText());
 
         if ("Artists".equals(currentScreenName)) {
             showArtistSongs(selection);
         } else if ("Albums".equals(currentScreenName)) {
             showAlbumSongs(selection);
         } else if ("Playlists".equals(currentScreenName)) {
-            if ("Edit Playlists".equals(selection)) {
+            if ("Edit Playlists".equals(selection.getText())) {
                 openMusicPlayer();
                 return;
             }
 
+            if (selection.object() == null) {
+                return;
+            }
+
             Playlist selectedPlaylist = playlists.stream()
-                .filter(p -> p.getName()
-                    .equals(selection))
+                .filter(p -> p.getId()
+                    .equals(selection.object().getId()))
                 .findFirst().orElse(null);
 
             if (selectedPlaylist != null) {
                 openPlaylist(selectedPlaylist);
             }
         } else {
-            if (selection.startsWith("No ") && selection.endsWith(" found")) {
+            if (selection.getText().startsWith("No ") && selection.getText().endsWith(" found")) {
                 return;
             }
             showNowPlaying(selection);
@@ -420,22 +439,29 @@ public class MyPod extends Application {
 
     /// NY KOD ///
     private void openPlaylist(Playlist p) {
+        Playlist updatedPlaylist = playlistRepo.findById(p.getId());
+
+        if (updatedPlaylist == null) {
+            showScreen("Playlists");
+            return;
+        }
+
         screenContent.getChildren().clear();
         menuLabels.clear();
         selectedIndex = 0;
 
         currentScreenName = "PlaylistSongs";
-        currentActivePlaylist = p;
+        currentActivePlaylist = updatedPlaylist;
 
-        Label title = new Label(p.getName());
+        Label title = new Label(updatedPlaylist.getName());
         title.getStyleClass().add("screen-title");
         screenContent.getChildren().add(title);
 
 
-        if (p.getSongs() != null && !p.getSongs().isEmpty()) {
-            List<Song> playlistSongs = new ArrayList<>(p.getSongs());
+        if (updatedPlaylist.getSongs() != null && !updatedPlaylist.getSongs().isEmpty()) {
+            List<Song> playlistSongs = new ArrayList<>(updatedPlaylist.getSongs());
             for (Song s : playlistSongs) {
-                addMenuItem(s.getTitle());
+                addMenuItem(s);
             }
         } else {
             addMenuItem("No songs found");
@@ -459,18 +485,18 @@ public class MyPod extends Application {
         itunesPlayList.setOnUpdate(() -> {
             new Thread(() -> {
                 try {
-                List<Playlist> updatedPlaylists = playlistRepo.findAll();
-                Platform.runLater(() -> {
-                    this.playlists = updatedPlaylists;
-                    if ("Playlists".equals(currentScreenName)) {
-                        showScreen("Playlists");
-                    } else if ("PlaylistSongs".equals(currentScreenName) && currentActivePlaylist != null) {
-                        playlists.stream()
-                            .filter(p -> p.getPlaylistId().equals(currentActivePlaylist.getPlaylistId()))
-                            .findFirst()
-                            .ifPresent(this::openPlaylist);
-                    }
-                });
+                    List<Playlist> updatedPlaylists = playlistRepo.findAll();
+                    Platform.runLater(() -> {
+                        this.playlists = updatedPlaylists;
+                        if ("Playlists".equals(currentScreenName)) {
+                            showScreen("Playlists");
+                        } else if ("PlaylistSongs".equals(currentScreenName) && currentActivePlaylist != null) {
+                            playlists.stream()
+                                .filter(p -> p.getId().equals(currentActivePlaylist.getId()))
+                                .findFirst()
+                                .ifPresent(this::openPlaylist);
+                        }
+                    });
                 } catch (Exception e) {
                     System.err.println("Failed to refresh playlists: " + e.getMessage());
                 }
@@ -482,26 +508,32 @@ public class MyPod extends Application {
         itunesPlayList.showLibrary(this.playlists);
     }
 
-    private void showArtistSongs(String artistName) {
+    private void showArtistSongs(ObjectLabel selection) {
         screenContent.getChildren().clear();
         menuLabels.clear();
         selectedIndex = 0;
 
         currentScreenName = "ArtistSongs";
 
-        Label title = new Label(artistName);
-        title.getStyleClass().add("screen-title");
-        screenContent.getChildren().add(title);
+        Label titleLabel = new Label(selection.getText());
+        titleLabel.getStyleClass().add("screen-title");
+        screenContent.getChildren().add(titleLabel);
+
+        if (selection.object() == null) {
+            addMenuItem("No songs found");
+            updateMenu();
+            return;
+        }
 
         if (songs != null && !songs.isEmpty()) {
             List<Song> artistSongs = songs.stream()
                 .filter(s -> s.getAlbum() != null &&
                     s.getAlbum().getArtist() != null &&
-                    s.getAlbum().getArtist().getName().equalsIgnoreCase(artistName))
+                    s.getAlbum().getArtist().getId().equals(selection.object().getId()))
                 .toList();
 
             if (!artistSongs.isEmpty()) {
-                artistSongs.forEach(s -> addMenuItem(s.getTitle()));
+                artistSongs.forEach(this::addMenuItem);
             } else {
                 addMenuItem("No songs found");
             }
@@ -511,24 +543,30 @@ public class MyPod extends Application {
         updateMenu();
     }
 
-    private void showAlbumSongs(String albumName) {
+    private void showAlbumSongs(ObjectLabel selection) {
         screenContent.getChildren().clear();
         menuLabels.clear();
         selectedIndex = 0;
 
         currentScreenName = "AlbumSongs";
 
-        Label title = new Label(albumName);
-        title.getStyleClass().add("screen-title");
-        screenContent.getChildren().add(title);
+        Label titleLabel = new Label(selection.getText());
+        titleLabel.getStyleClass().add("screen-title");
+        screenContent.getChildren().add(titleLabel);
+
+        if (selection.object() == null) {
+            addMenuItem("No songs found");
+            updateMenu();
+            return;
+        }
 
         if (songs != null && !songs.isEmpty()) {
             List<Song> albumSongs = songs.stream()
                 .filter(al -> al.getAlbum() != null &&
-                    al.getAlbum().getName().equalsIgnoreCase(albumName)).toList();
+                    al.getAlbum().getId().equals(selection.object().getId())).toList();
 
             if (!albumSongs.isEmpty()) {
-                albumSongs.forEach(s -> addMenuItem(s.getTitle()));
+                albumSongs.forEach(this::addMenuItem);
             } else {
                 addMenuItem("No songs found");
             }
@@ -538,22 +576,25 @@ public class MyPod extends Application {
         updateMenu();
     }
 
-    private void showNowPlaying(String songTitle) {
+    private void showNowPlaying(ObjectLabel selection) {
         screenContent.getChildren().clear();
         menuLabels.clear();
         selectedIndex = 0;
         currentScreenName = "NowPlaying";
 
-        Song currentSong = (songs != null) ? songs.stream()
-            .filter(s -> s.getTitle().equalsIgnoreCase(songTitle))
-            .findFirst()
-            .orElse(null) : null;
+        Song currentSong = null;
+        if (songs != null && selection.object() != null) {
+            currentSong = songs.stream()
+                .filter(s -> s.getId().equals(selection.object().getId()))
+                .findFirst()
+                .orElse(null);
+        }
 
         // Skapa elementen och tilldela klasser
         Label header = new Label("▶ NOW PLAYING");
         header.getStyleClass().add("now-playing-header");
 
-        Label titleLabel = new Label(songTitle);
+        Label titleLabel = new Label(selection.getText());
         titleLabel.getStyleClass().add("now-playing-title");
         titleLabel.setWrapText(true);
 
@@ -653,4 +694,14 @@ public class MyPod extends Application {
             System.err.println("Kunde inte ladda data: " + e.getMessage());
         }
     }
+
+    private record ObjectLabel(
+        Label label,
+        DBObject object) { // object is null for static menu items like "Edit Playlists"
+
+        public String getText() {
+            return label.getText();
+        }
+    }
+
 }

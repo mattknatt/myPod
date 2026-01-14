@@ -16,8 +16,8 @@ public class ArtistRepositoryImpl implements ArtistRepository {
     @Override
     public boolean existsByUniqueId(Artist artist) {
         return emf.callInTransaction(em ->
-            em.createQuery("select count(a) from Artist a where a.artistId = :artistId", Long.class)
-                .setParameter("artistId", artist.getArtistId())
+            em.createQuery("select count(a) from Artist a where a.id = :artistId", Long.class)
+                .setParameter("artistId", artist.getId())
                 .getSingleResult() > 0
         );
     }

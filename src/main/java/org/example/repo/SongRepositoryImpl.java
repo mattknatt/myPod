@@ -27,8 +27,8 @@ public class SongRepositoryImpl implements SongRepository {
     @Override
     public boolean existsByUniqueId(Song song) {
         try (var em = emf.createEntityManager()) {
-            return em.createQuery("select count(s) from Song s where s.songId = :songId", Long.class)
-                .setParameter("songId", song.getSongId())
+            return em.createQuery("select count(s) from Song s where s.id = :songId", Long.class)
+                .setParameter("songId", song.getId())
                 .getSingleResult() > 0;
         }
     }

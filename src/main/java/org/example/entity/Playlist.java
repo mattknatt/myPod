@@ -8,11 +8,11 @@ import java.util.Objects;
 import java.util.Set;
 
 @Entity
-public class Playlist {
+public class Playlist implements DBObject{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long playlistId;
+    private Long id;
 
     private String name;
 
@@ -33,8 +33,8 @@ public class Playlist {
         this.songs.remove(song);
     }
 
-    public Long getPlaylistId() {
-        return playlistId;
+    public Long getId() {
+        return id;
     }
 
     public String getName() {
@@ -43,8 +43,8 @@ public class Playlist {
 
     public Set<Song> getSongs() {return songs;}
 
-    public void setPlaylistId(Long playlistId) {
-        this.playlistId = playlistId;
+    public void setId(Long playlistId) {
+        this.id = playlistId;
     }
 
     public void setName(String name) {
@@ -59,7 +59,7 @@ public class Playlist {
         Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
         if (thisEffectiveClass != oEffectiveClass) return false;
         Playlist playlist = (Playlist) o;
-        return getPlaylistId() != null && Objects.equals(getPlaylistId(), playlist.getPlaylistId());
+        return getId() != null && Objects.equals(getId(), playlist.getId());
     }
 
     @Override
