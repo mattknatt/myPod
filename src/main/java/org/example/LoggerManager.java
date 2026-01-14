@@ -26,7 +26,7 @@ public class LoggerManager {
                 // Create database if it does not exist
                 String createDbSQL = "CREATE DATABASE IF NOT EXISTS " + DB_NAME;
                 stmt.executeUpdate(createDbSQL);
-                System.out.println("Database checked/created successfully.");
+                logger.info("Database checked/created successfully.");
             }
 
             // Step 2: Connect to the specific database
@@ -57,6 +57,8 @@ public class LoggerManager {
 
         } catch (SQLException e) {
             logger.error("Database error: {}", e.getMessage());
+
+            throw new RuntimeException("Failed to initialize logging database", e);
         }
     }
 }

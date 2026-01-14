@@ -103,7 +103,7 @@ public class PlaylistRepositoryImpl implements PlaylistRepository {
     @Override
     public Playlist createPlaylist(String name) {
         if (name == null || name.trim().isEmpty()) {
-            logger.error("createPlaylist: name is null");
+            logger.error("createPlaylist: name is null or empty");
             throw new IllegalArgumentException("name cannot be null or empty");
         }
         Playlist playlist = new Playlist(name);
