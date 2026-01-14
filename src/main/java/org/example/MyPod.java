@@ -649,10 +649,10 @@ public class MyPod extends Application {
         albumArtView.setPreserveRatio(true);
         albumArtView.setSmooth(true);
         albumArtView.setStyle("""
-                -fx-border-color: #ccc;
-                -fx-border-width: 1;
-                -fx-background-color: white;
-            """);
+            -fx-border-color: #ccc;
+            -fx-border-width: 1;
+            -fx-background-color: white;
+        """);
 
         Label titleLabel = new Label(selection.getText());
         titleLabel.getStyleClass().add("now-playing-title");
@@ -679,28 +679,22 @@ public class MyPod extends Application {
         progressBar = new ProgressBar(0);
         progressBar.getStyleClass().add("ipod-progress-bar");
 
-        // Layout-behållaren
-        VBox layout = new VBox(3);
-        layout.getStyleClass().add("now-playing-container");
-        layout.getChildren().addAll(header, albumArtView, titleLabel, artistLabel, albumLabel, progressBar);
-
-        layout.setAlignment(Pos.CENTER);
-
-        // --- Volume overlay ---
+        // --- Volume overlay (positioned on top of progress bar) ---
         volumeBar = new ProgressBar(mediaPlayer != null ? mediaPlayer.getVolume() : 0.5);
         volumeBar.getStyleClass().add("ipod-volume-bar");
         volumeBar.setOpacity(0); // start hidden
-        volumeBar.setPrefWidth(220);
 
-        StackPane volumeOverlay = new StackPane(volumeBar);
-        volumeOverlay.setMouseTransparent(true);
-        StackPane.setAlignment(volumeOverlay, Pos.BOTTOM_CENTER);
-        StackPane.setMargin(volumeOverlay, new Insets(0, 0, 18, 0));
+        // Stack the volume bar on top of progress bar
+        StackPane progressStack = new StackPane(progressBar, volumeBar);
+        progressStack.setAlignment(Pos.CENTER);
 
+        // Layout-behållaren
+        VBox layout = new VBox(3);
+        layout.getStyleClass().add("now-playing-container");
+        layout.getChildren().addAll(header, albumArtView, titleLabel, artistLabel, albumLabel, progressStack);
+        layout.setAlignment(Pos.CENTER);
 
-        StackPane nowPlayingStack = new StackPane(layout, volumeOverlay);
-        screenContent.getChildren().add(nowPlayingStack);
-
+        screenContent.getChildren().add(layout);
 
         if (currentSong != null) {
             String previewUrl = currentSong.getPreviewUrl();

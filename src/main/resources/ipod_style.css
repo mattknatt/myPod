@@ -205,3 +205,55 @@
         innershadow(gaussian, rgba(0,0,0,0.45), 2.5, 0, 0, -1),
         dropshadow(gaussian, rgba(0,0,0,0.35), 1.5, 0.0, 0, 1);
 }
+.ipod-volume-bar {
+    -fx-pref-width: 200px;
+    -fx-pref-height: 8px;
+}
+
+.ipod-volume-bar .track {
+    -fx-background-color: linear-gradient(
+        to bottom,
+        #f6f6f6 0%,
+        #dddddd 100%
+    );
+    -fx-background-radius: 4;
+}
+
+.ipod-volume-bar .bar {
+    -fx-background-radius: 4;
+    -fx-background-insets: 0;
+
+    -fx-background-color:
+        /* SUPER highlight */
+        linear-gradient(
+            to bottom,
+            rgba(255,255,255,0.95) 0%,
+            rgba(255,255,255,0.7) 20%,
+            rgba(255,255,255,0.35) 45%,
+            rgba(255,255,255,0.15) 60%,
+            rgba(255,255,255,0.0) 100%
+        ),
+
+            /* Grön glas-kropp */
+        linear-gradient(
+            to bottom,
+            #d3ffb6 0%,
+            #75ff6b 35%,
+            #35df2f 65%,
+            #35df2f 100%
+        ),
+
+            /* Mörk botten för djup */
+        linear-gradient(
+            to bottom,
+            rgba(0,0,0,0.15),
+            rgba(0,0,0,0.45)
+        );
+
+    /* GLAS + DJUP */
+    -fx-effect:
+        innershadow(gaussian, rgba(255,255,255,0.55), 2.5, 0, 0, 1),
+        innershadow(gaussian, rgba(0,0,0,0.45), 2.5, 0, 0, -1),
+        dropshadow(gaussian, rgba(0,0,0,0.35), 1.5, 0.0, 0, 1);
+}
+
