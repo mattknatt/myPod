@@ -1,7 +1,7 @@
-<Configuration status="WARN" packages="com.example.logging">
+<Configuration status="WARN">
     <Appenders>
         <JDBC name="HibernateDBAppender" tableName="app_logs">
-            <ConnectionSource class="com.example.logging.JpaHibernateConnectionSource"/>
+            <ConnectionSource class="org.example.logging.JpaHibernateConnectionSource"/>
             <Column name="level" pattern="%level"/>
             <Column name="message" pattern="%message"/>
             <Column name="error_details" pattern="%throwable"/>

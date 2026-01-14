@@ -96,6 +96,7 @@ public class MyPod extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        logger.error("test");
         // --- LAYOUT SETUP ---
         // BorderPane är bra för att placera saker i Top, Bottom, Center, Left, Right.
         BorderPane root = new BorderPane();
