@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 
 public class EntityManagerFactoryProvider {
-
     public static EntityManagerFactory create(
         String jdbcUrl,
         String username,

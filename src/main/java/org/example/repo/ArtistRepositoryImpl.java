@@ -6,7 +6,6 @@ import org.example.entity.Artist;
 import java.util.List;
 
 public class ArtistRepositoryImpl implements ArtistRepository {
-
     private final EntityManagerFactory emf;
 
     public ArtistRepositoryImpl(EntityManagerFactory emf) {

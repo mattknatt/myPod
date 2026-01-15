@@ -24,11 +24,8 @@ import java.util.List;
  * Huvudklass för GUI:t. Hanterar visning av bibliotek, spellistor och sökning.
  */
 public class ItunesPlayList {
-
     private static final Logger logger = LoggerFactory.getLogger(ItunesPlayList.class);
-
     private final PlaylistRepository pri;
-
     private Runnable onUpdateCallback;
 
     public void setOnUpdate(Runnable callback) {
@@ -46,12 +43,10 @@ public class ItunesPlayList {
     }
 
     // --- DATAMODELL ---
-
     // En lista med alla playlist som finns i databasen
     private final ObservableList<Playlist> allPlaylistList = FXCollections.observableArrayList();
 
     // --- GUI KOMPONENTER ---
-
     // Tabellen i mitten som visar låtarna
     private final TableView<Song> songTable = new TableView<>();
 
@@ -67,7 +62,6 @@ public class ItunesPlayList {
      *
      */
     public void showLibrary() {
-
         Stage stage = new Stage();
 
         // Lägg till existerande playlist i vår lokala lista (non-blocking)
@@ -109,7 +103,6 @@ public class ItunesPlayList {
         // ---------------------------------------------------------
         // 2. VÄNSTER (Spellistorna)
         // ---------------------------------------------------------
-
         sourceList.setItems(allPlaylistList); // Koppla data till listan
         sourceList.getStyleClass().add("source-list");
         sourceList.setPrefWidth(200);
@@ -174,12 +167,12 @@ public class ItunesPlayList {
         sourceList.getSelectionModel().selectFirst(); // Välj första listan ("Bibliotek") som startvärde
 
         // ---------------------------------------------------------
-        // 3. MITTEN (Låttabellen)
+        // 3. MITTEN (Biblioteket)
         // ---------------------------------------------------------
         setupTable(); // Konfigurerar kolumner och beteende för tabellen
 
         // ---------------------------------------------------------
-        // 4. BOTTEN (Knappar för att hantera listor)
+        // 4. BOTTEN (Knappar för att hantera spellistor)
         // ---------------------------------------------------------
         HBox bottomPanel = new HBox(10);
         bottomPanel.setPadding(new Insets(10));
@@ -203,7 +196,6 @@ public class ItunesPlayList {
         // ---------------------------------------------------------
         // SLUTMONTERING
         // ---------------------------------------------------------
-
         // SplitPane gör att användaren kan dra i gränsen mellan vänstermeny och tabell
         SplitPane splitPane = new SplitPane(sourceList, songTable);
         splitPane.setDividerPositions(0.25); // Sätt startposition för avdelaren
@@ -308,7 +300,7 @@ public class ItunesPlayList {
             }
         });
 
-        /// NY KOD - Högerklicksfunktion på låtar för att lägga till och ta bort från spellista ////
+        // Högerklicksfunktion på låtar för att lägga till och ta bort från spellista
         songTable.setRowFactory(songTableView -> {
             TableRow<Song> row = new TableRow<>();
             ContextMenu contextMenu = new ContextMenu();
@@ -326,14 +318,14 @@ public class ItunesPlayList {
                 removeSelectedSong();
             });
 
-            // VIKTIGT: Uppdatera när hela ContextMenu visas
+            // Uppdatera när hela ContextMenu visas
             contextMenu.setOnShowing(event -> {
                 addSongSubMenu.getItems().clear();
                 Song selectedSong = row.getItem();
 
                 if (selectedSong != null && !allPlaylistList.isEmpty()) {
                     for (Playlist pl : allPlaylistList) {
-                        // Hoppa över biblioteket/huvudlistan om id är 1
+                        // Hoppa över Biblioteket om id är 1
                         if (pl.getId() != null && pl.getId().equals(1L)) continue;
 
                         MenuItem playListItem = new MenuItem(pl.getName());
@@ -371,7 +363,6 @@ public class ItunesPlayList {
                     row.setContextMenu(contextMenu);
                 }
             });
-
             return row;
         });
     }
@@ -384,7 +375,7 @@ public class ItunesPlayList {
         if (selectedPlaylist == null) return;
         Long currentList = selectedPlaylist.getId();
 
-        // Hämta originaldatan för den valda spellistan
+        // Hämta ursprunglig data för den valda spellistan
         ObservableList<Song> masterData = FXCollections.observableArrayList(pri.findById(currentList).getSongs());
 
         // Om sökfältet är tomt, visa allt
@@ -417,9 +408,9 @@ public class ItunesPlayList {
     private void createNewPlaylist() {
         TextInputDialog d = new TextInputDialog("New playlist");
         // Här ändrar du fönstrets titel och text
-        d.setTitle("Create new playlist");           // Ersätter "Bekräftelse"
-        d.setHeaderText("Enter playlist name");  // Rubriken inuti rutan
-        d.setContentText("Name:");                  // Texten bredvid inmatningsfältet
+        d.setTitle("Create new playlist");      // Ersätter "Bekräftelse"
+        d.setHeaderText("Enter playlist name"); // Rubriken inuti rutan
+        d.setContentText("Name:");              // Texten bredvid inmatningsfältet
 
         d.showAndWait().ifPresent(name -> {
             if (!name.trim().isEmpty()) {
@@ -452,7 +443,7 @@ public class ItunesPlayList {
                     sel.setName(newName);
                     sourceList.refresh();
                 } catch (IllegalStateException ex) {
-                    logger.error("renameSelectedPlaylist: failed to rename", ex);
+                    logger.error("renameSelectedPlaylist: failed to rename ", ex);
                     new Alert(Alert.AlertType.ERROR, "Failed to rename: " + ex.getMessage()).showAndWait();
                 }
             }
@@ -468,7 +459,6 @@ public class ItunesPlayList {
         if (sel != null && sel.getId() != null && !sel.getId().equals(1L) && !sel.getId().equals(2L)) {
             pri.deletePlaylist(sel);
             allPlaylistList.remove(sel);
-
             refresh();
         }
     }
@@ -484,7 +474,6 @@ public class ItunesPlayList {
             pri.removeSong(list, sel);
             list.getSongs().remove(sel);
             songTable.getItems().remove(sel);
-
             refresh();
         }
     }

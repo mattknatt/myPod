@@ -51,21 +51,19 @@ import java.util.List;
  * Denna klass bygger upp GUI:t (simulerar en iPod) och hanterar navigering.
  */
 public class MyPod extends Application {
-
     private static final Logger logger = LoggerFactory.getLogger(MyPod.class);
-
     private String currentScreenName = "";
     private Playlist currentActivePlaylist = null;
 
     // --- DATA-LAGER ---
-    // Repositories används för att hämta data från databasen istället för att hårdkoda den.
+    // Repositories används för att hämta data från databasen istället för att hårdkoda den
     private final SongRepository songRepo = new SongRepositoryImpl(PersistenceManager.getEntityManagerFactory());
     private final ArtistRepository artistRepo = new ArtistRepositoryImpl(PersistenceManager.getEntityManagerFactory());
     private final AlbumRepository albumRepo = new AlbumRepositoryImpl(PersistenceManager.getEntityManagerFactory());
     private final PlaylistRepository playlistRepo = new PlaylistRepositoryImpl(PersistenceManager.getEntityManagerFactory());
     private final ItunesApiClient apiClient = new ItunesApiClient();
 
-    // Listor som håller datan vi hämtat från databasen
+    // Listor som håller data vi hämtat från databasen
     private List<Song> songs;
     private List<Artist> artists;
     private List<Album> albums;
@@ -83,9 +81,9 @@ public class MyPod extends Application {
     // --- GUI-TILLSTÅND ---
     private int selectedIndex = 0;      // Håller koll på vilket menyval som är markerat just nu
     private VBox screenContent;         // Behållaren för texten/listan inuti "skärmen"
-    private StackPane myPodScreen;       // Själva skärm-containern
+    private StackPane myPodScreen;      // Själva skärm-containern
     private ScrollPane scrollPane;      // Gör att vi kan scrolla om listan är lång
-    private boolean isMainMenu = true; // Flagga för att veta om vi är i huvudmenyn eller en undermeny
+    private boolean isMainMenu = true;  // Flagga för att veta om vi är i huvudmenyn eller en undermeny
 
     private MediaPlayer mediaPlayer;
     private ProgressBar progressBar;
@@ -97,8 +95,8 @@ public class MyPod extends Application {
         // --- LAYOUT SETUP ---
         // BorderPane är bra för att placera saker i Top, Bottom, Center, Left, Right.
         BorderPane root = new BorderPane();
-        root.setPadding(new Insets(20)); // Lite luft runt kanten
-        root.getStyleClass().add("ipod-body"); // CSS-klass för själva iPod-kroppen
+        root.setPadding(new Insets(20));        // Lite luft runt kanten
+        root.getStyleClass().add("ipod-body");  // CSS-klass för själva iPod-kroppen
 
         // 1. Skapa och placera skärmen högst upp
         myPodScreen = createMyPodScreen();
@@ -140,8 +138,7 @@ public class MyPod extends Application {
 
         // --- SCEN OCH CSS ---
         Scene scene = new Scene(root, 300, 500);
-        try {
-            // Försök ladda CSS-filen för styling
+        try { // Försök ladda CSS-filen för styling
             scene.getStylesheets().add(getClass().getResource("/ipod_style.css").toExternalForm());
         } catch (Exception e) {
             logger.info("Start: CSS not found");
@@ -152,7 +149,7 @@ public class MyPod extends Application {
 
         // Koppla tangentbordslyssnare för att kunna styra menyn
         setupNavigation(scene);
-        showMainMenu(); // Initiera första vyn (tom tills datan laddats klart)
+        showMainMenu(); // Initiera första vyn (tom tills data laddats klart)
 
         primaryStage.setTitle("myPod");
         primaryStage.setScene(scene);
@@ -183,11 +180,11 @@ public class MyPod extends Application {
         screenContent.setAlignment(Pos.TOP_LEFT);
         screenContent.setPadding(new Insets(10, 5, 10, 5));
 
-        // Konfigurera scrollbaren så den inte syns men fungerar
+        // Konfigurera scrollbar så den inte syns, men fungerar
         scrollPane.setContent(screenContent);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); // Ingen horisontell scroll
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); // Ingen synlig vertikal scroll
-        scrollPane.setFitToWidth(true); // Innehållet ska fylla bredden
+        scrollPane.setFitToWidth(true);                             // Innehållet ska fylla bredden
         scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
 
         screenContainer.getChildren().add(scrollPane);
@@ -245,10 +242,8 @@ public class MyPod extends Application {
         if (mediaPlayer != null) {
             if (mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
                 mediaPlayer.pause();
-
             } else {
                 mediaPlayer.play();
-
             }
         }
     }
@@ -302,7 +297,7 @@ public class MyPod extends Application {
             }
             // Navigera UPP
             else if (event.getCode() == KeyCode.UP) {
-                // Matematisk formel för att loopa bakåt (från 0 till sista)
+                // Matematisk formel för att loop'a bakåt (från 0 till sista)
                 newIndex = (selectedIndex - 1 + totalItems) % totalItems;
             }
             // Välj (ENTER)
@@ -330,7 +325,6 @@ public class MyPod extends Application {
 
         double newVolume = Math.max(0, Math.min(1, mediaPlayer.getVolume() + delta));
         mediaPlayer.setVolume(newVolume);
-
         volumeBar.setProgress(newVolume);
         showVolumeOverlay();
     }
@@ -360,7 +354,7 @@ public class MyPod extends Application {
         for (int i = 0; i < menuLabels.size(); i++) {
             if (i == selectedIndex) {
                 menuLabels.get(i).label().getStyleClass().add("selected-item"); // Gör texten markerad
-                ensureVisible(menuLabels.get(i).label()); // Se till att scrollbaren flyttas så vi ser valet
+                ensureVisible(menuLabels.get(i).label());                       // Se till att scrollbar flyttas så vi ser valet
             } else {
                 menuLabels.get(i).label().getStyleClass().remove("selected-item"); // Ta bort markering
             }
@@ -400,7 +394,7 @@ public class MyPod extends Application {
         screenTitle.getStyleClass().add("screen-title");
         screenContent.getChildren().add(screenTitle);
 
-        // Fyll på med rätt data beroende på vad användaren valde
+        // Fyll på med rätt data beroende på användarens val
         switch (screenName) {
             case "Songs" -> {
                 if (songs != null && !songs.isEmpty()) {
@@ -424,6 +418,7 @@ public class MyPod extends Application {
                 } else addMenuItem("No playlists found");
             }
         }
+
         updateMenu(); // Uppdatera så första valet är markerat
     }
 
@@ -472,15 +467,14 @@ public class MyPod extends Application {
         for (String item : mainMenu) {
             addMenuItem(item);
         }
-        updateMenu();
 
+        updateMenu();
     }
 
     /**
      * Vad som händer när man trycker Enter på en låt/artist.
      */
     private void handleSelection(ObjectLabel selection) {
-        // Här kan du lägga till logik för att spela låten eller öppna albumet
         System.out.println("User selected: " + selection.getText());
 
         if ("Artists".equals(currentScreenName)) {
@@ -494,16 +488,13 @@ public class MyPod extends Application {
                 openMusicPlayer();
                 return;
             }
-
             if (selection.object() == null) {
                 return;
             }
-
             Playlist selectedPlaylist = playlists.stream()
                 .filter(p -> p.getId()
                     .equals(selection.object().getId()))
                 .findFirst().orElse(null);
-
             if (selectedPlaylist != null) {
                 openPlaylist(selectedPlaylist);
             }
@@ -542,8 +533,8 @@ public class MyPod extends Application {
         } else {
             addMenuItem("No songs found");
         }
-        updateMenu();
 
+        updateMenu();
     }
 
     /**
@@ -586,7 +577,6 @@ public class MyPod extends Application {
         screenContent.getChildren().clear();
         menuLabels.clear();
         selectedIndex = 0;
-
         currentScreenName = "ArtistAlbums";
 
         Label titleLabel = new Label(selection.getText());
@@ -616,7 +606,6 @@ public class MyPod extends Application {
         screenContent.getChildren().clear();
         menuLabels.clear();
         selectedIndex = 0;
-
         currentScreenName = "AlbumSongs";
 
         Label titleLabel = new Label(selection.getText());
@@ -763,15 +752,15 @@ public class MyPod extends Application {
 
             mediaPlayer.play();
         } catch (Exception e) {
-            logger.error("playPreview: Could not play preview:", e);
+            logger.error("playPreview: Could not play preview: ", e);
         }
     }
 
     private void ensureVolumeBarExists() {
         if (volumeBar == null) {
-            volumeBar = new ProgressBar(0.5); // standard volym 50%
+            volumeBar = new ProgressBar(0.5); // Standard volume set to 50%
             volumeBar.getStyleClass().add("ipod-volume-bar");
-            volumeBar.setOpacity(0); // hidden by default
+            volumeBar.setOpacity(0); // Hidden by default
         }
     }
 
@@ -791,7 +780,7 @@ public class MyPod extends Application {
             this.albums = albumRepo.findAll();
             this.playlists = playlistRepo.findAll();
         } catch (Exception e) {
-            logger.error("initializeData: Failed to load data", e);
+            logger.error("initializeData: Failed to load data ", e);
         }
     }
 

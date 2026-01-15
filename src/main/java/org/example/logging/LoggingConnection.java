@@ -7,7 +7,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 public class LoggingConnection {
-
     private static HikariConfig config = new HikariConfig();
     private static HikariDataSource ds;
 

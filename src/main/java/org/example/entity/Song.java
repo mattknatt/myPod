@@ -42,7 +42,7 @@ public class Song implements DBObject {
 
     public static Song fromDTO(ItunesDTO dto, Album album) {
         if (dto.trackId() == null || dto.trackName() == null) {
-            throw new IllegalArgumentException("Required fields (trackId, trackName) cannot be null");
+            throw new IllegalArgumentException("Required fields (trackId, trackName) can not be null");
         }
         return new Song(dto.trackId(), dto.trackName(), dto.trackTimeMillis(), dto.previewUrl(), album);
     }

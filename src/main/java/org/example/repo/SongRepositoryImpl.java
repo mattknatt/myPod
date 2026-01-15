@@ -11,9 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SongRepositoryImpl implements SongRepository {
-
     private static final Logger logger = LoggerFactory.getLogger(SongRepositoryImpl.class);
-
     private final EntityManagerFactory emf;
 
     public SongRepositoryImpl(EntityManagerFactory emf) {

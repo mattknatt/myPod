@@ -24,7 +24,6 @@ public class LogEntry {
     @Column(name = "error_details", columnDefinition = "TEXT")
     private String errorDetails;
 
-
     @Column(name = "\"timestamp\"")
     private LocalDateTime timestamp;
 

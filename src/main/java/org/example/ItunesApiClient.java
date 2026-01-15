@@ -17,9 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ItunesApiClient {
-
     private static final Logger logger = LoggerFactory.getLogger(ItunesApiClient.class);
-
     private final HttpClient client;
     private final ObjectMapper mapper;
 
@@ -30,7 +28,6 @@ public class ItunesApiClient {
     }
 
     public List<ItunesDTO> searchSongs(String term) throws Exception {
-
         String encodedTerm = URLEncoder.encode(term, StandardCharsets.UTF_8);
         String url = "https://itunes.apple.com/search?term=" + encodedTerm + "&entity=song&attribute=artistTerm&limit=20";
 

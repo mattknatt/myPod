@@ -5,7 +5,6 @@ import jakarta.persistence.EntityManagerFactory;
 import java.util.Map;
 
 public final class TestPersistenceManager {
-
     private static EntityManagerFactory emf;
 
     private TestPersistenceManager() {

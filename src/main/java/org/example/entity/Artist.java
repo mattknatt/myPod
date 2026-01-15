@@ -38,7 +38,7 @@ public class Artist implements DBObject {
 
     public static Artist fromDTO(ItunesDTO dto) {
         if (dto.artistId() == null || dto.artistName() == null) {
-            throw new IllegalArgumentException("Required fields (artistId, artistName) cannot be null");
+            throw new IllegalArgumentException("Required fields (artistId, artistName) can not be null");
         }
         return new Artist(dto.artistId(), dto.artistName(), dto.country());
     }
