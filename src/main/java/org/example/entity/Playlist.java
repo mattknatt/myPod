@@ -7,6 +7,15 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * JPA entity representing a user-defined playlist.
+ *
+ * <p>A {@code Playlist} groups multiple {@link Song} entities using a
+ * many-to-many relationship. Playlists are mutable and can have songs
+ * added or removed dynamically.</p>
+ *
+ * <p>Entity identity is based solely on the generated database identifier.</p>
+ */
 @Entity
 public class Playlist implements DBObject {
 

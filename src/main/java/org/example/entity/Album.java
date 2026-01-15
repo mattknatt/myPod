@@ -16,6 +16,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * JPA entity representing an album.
+ *
+ * <p>An {@code Album} is a persistent JPA entity that belongs to an
+ * {@link Artist} and contains one or more {@link Song} entities.</p>
+ *
+ * <p></p>It also stores optional album artwork as a binary large object (BLOB),
+ * which is converted to a JavaFX {@link Image} when displayed in the UI.</p>
+ *
+ * <p>Album instances are typically created from iTunes API data via
+ * {@link #fromDTO(ItunesDTO, Artist)}.</p>
+ */
 @Entity
 public class Album implements DBObject {
 
@@ -55,6 +67,18 @@ public class Album implements DBObject {
         this.cover = cover;
     }
 
+    /**
+     * Creates an {@code Album} entity from an iTunes API DTO.
+     *
+     * <p>This factory method extracts album-related data and attempts
+     * to download and persist album artwork. If artwork cannot be loaded,
+     * {@code null} is stored and a default image is used by the UI.</p>
+     *
+     * @param dto    source DTO from the iTunes API
+     * @param artist associated artist entity
+     * @return a new {@code Album} instance
+     * @throws IllegalArgumentException if required DTO fields are missing
+     */
     public static Album fromDTO(ItunesDTO dto, Artist artist) {
         if (dto.collectionId() == null || dto.collectionName() == null) {
             throw new IllegalArgumentException("Required fields (albumId, albumName) cannot be null");
@@ -126,6 +150,14 @@ public class Album implements DBObject {
         return cover;
     }
 
+    /**
+     * Returns the album cover as a JavaFX {@link Image}.
+     *
+     * <p>If no cover is stored or if decoding fails, a default placeholder
+     * image bundled with the application is returned.</p>
+     *
+     * @return album cover image or a default image if unavailable
+     */
     public Image getCoverImage() {
         byte[] bytes = getCover();
         if (bytes == null || bytes.length == 0) return loadDefaultImage();
@@ -143,10 +175,10 @@ public class Album implements DBObject {
     }
 
     /**
-     * Generate and returns byte array with cover art
+     * Downloads album artwork from the given URL and converts it to a byte array.
      *
-     * @param url url pointing to desired cover
-     * @return a byte array of the desired cover, or null if the URL image cannot be loaded
+     * @param url URL pointing to the album artwork
+     * @return image data as byte array, or {@code null} if loading fails
      */
     public static byte[] generateAlbumCover(URL url) {
         BufferedImage bi = loadUrlImage(url);
@@ -158,10 +190,10 @@ public class Album implements DBObject {
     }
 
     /**
-     * Converts image to byte array to be stored as BLOB
+     * Converts a buffered image into a JPEG byte array suitable for BLOB storage.
      *
-     * @param bi buffered jpg image
-     * @return image converted to byte array
+     * @param bi buffered image
+     * @return image encoded as byte array, or {@code null} on failure
      */
     public static byte[] imageToBytes(BufferedImage bi) {
         if (bi == null) return null;
@@ -176,9 +208,10 @@ public class Album implements DBObject {
     }
 
     /**
+     * Loads an image from a remote URL.
      *
-     * @param url url pointing to desired cover
-     * @return bufferedImage of desired cover or null if not available
+     * @param url URL pointing to an image resource
+     * @return loaded {@link BufferedImage} or {@code null} if unavailable
      */
     public static BufferedImage loadUrlImage(URL url) {
         if (url == null) return null;
@@ -199,8 +232,9 @@ public class Album implements DBObject {
     }
 
     /**
+     * Loads the default album artwork bundled with the application.
      *
-     * @return default cover art from resources
+     * @return default {@link Image}, or {@code null} if the resource cannot be loaded
      */
     public static Image loadDefaultImage() {
         try (InputStream is = Album.class.getResourceAsStream("/itunescover.jpg")) {

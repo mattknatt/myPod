@@ -8,6 +8,17 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * JPA entity representing an individual song or track.
+ *
+ * <p>A {@code Song} belongs to a single {@link Album} and may appear in
+ * zero or more {@link Playlist} entities.</p>
+ *
+ * <p>Songs are typically created from external metadata sources
+ * such as the iTunes API.</p>
+ *
+ * <p>Entity identity is based solely on the song identifier.</p>
+ */
 @Entity
 public class Song implements DBObject {
 
@@ -40,6 +51,14 @@ public class Song implements DBObject {
         this.album = album;
     }
 
+    /**
+     * Factory method for creating a {@code Song} from an iTunes DTO.
+     *
+     * @param dto source DTO
+     * @param album album the song belongs to
+     * @return new {@code Song} instance
+     * @throws IllegalArgumentException if required DTO fields are missing
+     */
     public static Song fromDTO(ItunesDTO dto, Album album) {
         if (dto.trackId() == null || dto.trackName() == null) {
             throw new IllegalArgumentException("Required fields (trackId, trackName) cannot be null");
@@ -47,6 +66,11 @@ public class Song implements DBObject {
         return new Song(dto.trackId(), dto.trackName(), dto.trackTimeMillis(), dto.previewUrl(), album);
     }
 
+    /**
+     * Returns the song length formatted as {@code mm:ss}.
+     *
+     * @return formatted duration string
+     */
     public String getFormattedLength() {
         if (length == null) return "0:00";
 

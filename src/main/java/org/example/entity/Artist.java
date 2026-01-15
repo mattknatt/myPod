@@ -8,6 +8,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * JPA entity representing a musical artist.
+ *
+ * <p>An {@code Artist} is the top-level domain object in the music model and
+ * owns one or more {@link Album} entities. Artists are typically created
+ * from external data sources (e.g. iTunes API) and persisted using JPA.</p>
+ *
+ * <p>Entity identity is based solely on the database identifier.</p>
+ */
 @Entity
 public class Artist implements DBObject {
 
@@ -36,6 +45,13 @@ public class Artist implements DBObject {
         this.country = country;
     }
 
+    /**
+     * Factory method for creating an {@code Artist} from an iTunes DTO.
+     *
+     * @param dto source DTO
+     * @return new {@code Artist} instance
+     * @throws IllegalArgumentException if required DTO fields are missing
+     */
     public static Artist fromDTO(ItunesDTO dto) {
         if (dto.artistId() == null || dto.artistName() == null) {
             throw new IllegalArgumentException("Required fields (artistId, artistName) cannot be null");
