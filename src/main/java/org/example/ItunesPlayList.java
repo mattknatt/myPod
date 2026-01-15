@@ -21,88 +21,130 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
- * Huvudklass för GUI:t. Hanterar visning av bibliotek, spellistor och sökning.
+ * Main JavaFX UI class for playlist and library management.
+ *
+ * <p>
+ * This class is responsible for constructing and displaying the graphical
+ * user interface, including playlist navigation, song tables, search
+ * functionality, and context menus for playlist operations.
+ * </p>
+ *
+ * <p>
+ * The UI communicates with the persistence layer exclusively through
+ * {@link PlaylistRepository}.
+ * </p>
  */
 public class ItunesPlayList {
     private static final Logger logger = LoggerFactory.getLogger(ItunesPlayList.class);
     private final PlaylistRepository pri;
     private Runnable onUpdateCallback;
 
+    /**
+     * Creates a new {@code ItunesPlayList}.
+     *
+     * @param playlistRepository repository used for playlist persistence operations
+     */
+    public ItunesPlayList(PlaylistRepository playlistRepository) {
+        this.pri = playlistRepository;
+    }
+
+    /**
+     * Registers a callback that is invoked when the UI state changes and
+     * external components need to refresh.
+     *
+     * @param callback the callback to invoke on update
+     */
     public void setOnUpdate(Runnable callback) {
         this.onUpdateCallback = callback;
     }
 
+    /**
+     * Triggers the registered update callback, if present.
+     */
     private void refresh() {
         if (onUpdateCallback != null) {
             onUpdateCallback.run();
         }
     }
 
-    public ItunesPlayList(PlaylistRepository playlistRepository) {
-        this.pri = playlistRepository;
-    }
-
-    // --- DATAMODELL ---
-    // En lista med alla playlist som finns i databasen
-    private final ObservableList<Playlist> allPlaylistList = FXCollections.observableArrayList();
-
-    // --- GUI KOMPONENTER ---
-    // Tabellen i mitten som visar låtarna
-    private final TableView<Song> songTable = new TableView<>();
-
-    // Listan till vänster där man väljer spellista
-    private final ListView<Playlist> sourceList = new ListView<>();
-
-    // Textfält för den "digitala displayen" högst upp
-    private Text lcdTitle = new Text("myTunes");
-    private Text lcdArtist = new Text("Choose library or playlist");
+    // ---------------------------------------------------------------------
+    // Data model
+    // ---------------------------------------------------------------------
 
     /**
-     * Bygger upp hela gränssnittet och visar fönstret.
+     * Observable list containing all playlists loaded from the database.
+     */
+    private final ObservableList<Playlist> allPlaylistList = FXCollections.observableArrayList();
+
+    // ---------------------------------------------------------------------
+    // UI components
+    // ---------------------------------------------------------------------
+
+    /**
+     * Table displaying the songs of the selected playlist.
+     */
+    private final TableView<Song> songTable = new TableView<>();
+
+    /**
+     * List view displaying available playlists.
+     */
+    private final ListView<Playlist> sourceList = new ListView<>();
+
+    /**
+     * Text elements used in the LCD-style display at the top of the UI.
+     */
+    private Text lcdTitle = new Text("myTunes");
+    private Text lcdArtist = new Text("Choose Library or playlist");
+
+    /**
+     * Builds and displays the complete application window.
      *
+     * <p>
+     * This method initializes all UI components, loads playlists asynchronously,
+     * and wires event handlers for user interaction.
+     * </p>
      */
     public void showLibrary() {
         Stage stage = new Stage();
 
-        // Lägg till existerande playlist i vår lokala lista (non-blocking)
+        // Load playlists asynchronously to avoid blocking the JavaFX thread
         new Thread(() -> {
             List<Playlist> pls = pri.findAll();
             javafx.application.Platform.runLater(() -> allPlaylistList.setAll(pls));
         }).start();
 
-        // BorderPane är huvudlayouten: Top, Left, Center, Bottom
         BorderPane root = new BorderPane();
 
-        // ---------------------------------------------------------
-        // 1. TOPPEN (Knappar, LCD-display, Sökfält)
-        // ---------------------------------------------------------
-        HBox topPanel = new HBox(15); // HBox lägger saker på rad horisontellt
-        topPanel.getStyleClass().add("top-panel"); // CSS-klass för styling
+        // -----------------------------------------------------------------
+        // Top section (controls, LCD display, search field)
+        // -----------------------------------------------------------------
+        HBox topPanel = new HBox(15);
+        topPanel.getStyleClass().add("top-panel");
         topPanel.setPadding(new Insets(10, 15, 10, 15));
         topPanel.setAlignment(Pos.CENTER_LEFT);
 
-        // Skapa LCD-displayen (den blå rutan med text)
         StackPane lcdDisplay = createLCDDisplay();
-        // Säg åt displayen att växa och ta upp ledig plats i bredd
         HBox.setHgrow(lcdDisplay, Priority.ALWAYS);
 
-        // Sökfältet
         TextField searchField = new TextField();
         searchField.setPromptText("Search...");
         searchField.getStyleClass().add("itunes-search");
 
-        // Lyssnare: När texten ändras i sökfältet, kör metoden filterSongs()
-        searchField.textProperty().addListener((obs, old, newVal) -> filterSongs(newVal));
+        // Filter songs whenever the search text changes
+        searchField.textProperty()
+            .addListener((obs, old, newVal) -> filterSongs(newVal));
 
-        // Lägg till allt i toppen
         topPanel.getChildren().addAll(
-            createRoundButton("⏮"), createRoundButton("▶"), createRoundButton("⏭"),
-            lcdDisplay, searchField
+            createRoundButton("⏮"),
+            createRoundButton("▶"),
+            createRoundButton("⏭"),
+            lcdDisplay,
+            searchField
         );
 
-        // ---------------------------------------------------------
-        // 2. VÄNSTER (Spellistorna)
-        // ---------------------------------------------------------
+        // -----------------------------------------------------------------
+        // Left section (playlist navigation)
+        // -----------------------------------------------------------------
         sourceList.setItems(allPlaylistList); // Koppla data till listan
         sourceList.getStyleClass().add("source-list");
         sourceList.setPrefWidth(200);
@@ -154,59 +196,70 @@ public class ItunesPlayList {
             return cell;
         });
 
-        // Lyssnare: Vad händer när man klickar på en spellista i menyn?
-        sourceList.getSelectionModel().selectedItemProperty().addListener((obs, old, newVal) -> {
-            if (newVal != null) {
-                searchField.clear(); // Rensa gammal sökning
-                // Hämta låtlistan från vår Map baserat på namnet och visa i tabellen
-                ObservableList<Song> songList = FXCollections.observableArrayList(newVal.getSongs().stream().toList());
-                songTable.setItems(songList);
-            }
-        });
+        // Update song table when a playlist is selected
+        sourceList.getSelectionModel()
+            .selectedItemProperty()
+            .addListener((obs, old, newVal) -> {
+                if (newVal != null) {
+                    searchField.clear();
+                    ObservableList<Song> songList
+                        = FXCollections.observableArrayList(
+                        newVal.getSongs().stream().toList()
+                    );
+                    songTable.setItems(songList);
+                }
+            });
 
-        sourceList.getSelectionModel().selectFirst(); // Välj första listan ("Bibliotek") som startvärde
+        // Choose first playlist "Library" as starting point
+        sourceList.getSelectionModel().selectFirst();
 
-        // ---------------------------------------------------------
-        // 3. MITTEN (Biblioteket)
-        // ---------------------------------------------------------
-        setupTable(); // Konfigurerar kolumner och beteende för tabellen
+        // -----------------------------------------------------------------
+        // Center section (song table)
+        // -----------------------------------------------------------------
+        setupTable();
 
-        // ---------------------------------------------------------
-        // 4. BOTTEN (Knappar för att hantera spellistor)
-        // ---------------------------------------------------------
+        // -----------------------------------------------------------------
+        // Bottom section (playlist controls)
+        // -----------------------------------------------------------------
         HBox bottomPanel = new HBox(10);
         bottomPanel.setPadding(new Insets(10));
         bottomPanel.getStyleClass().add("bottom-panel");
 
         Button btnAddList = new Button("+");
         btnAddList.getStyleClass().add("list-control-button");
+
         Button btnDeleteList = new Button("-");
         btnDeleteList.getStyleClass().add("list-control-button");
+
         Button btnMoveToPlaylist = new Button("Add song to playlist");
         Button btnRemoveSong = new Button("Remove song from playlist");
 
-        // Koppla knapparna till metoder
         btnAddList.setOnAction(e -> createNewPlaylist());
         btnDeleteList.setOnAction(e -> deleteSelectedPlaylist());
         btnRemoveSong.setOnAction(e -> removeSelectedSong());
         btnMoveToPlaylist.setOnAction(e -> addSelectedSong(btnMoveToPlaylist));
 
-        bottomPanel.getChildren().addAll(btnAddList, btnDeleteList, new Separator(), btnMoveToPlaylist, btnRemoveSong);
+        bottomPanel.getChildren().addAll(
+            btnAddList,
+            btnDeleteList,
+            new Separator(),
+            btnMoveToPlaylist,
+            btnRemoveSong);
 
-        // ---------------------------------------------------------
-        // SLUTMONTERING
-        // ---------------------------------------------------------
-        // SplitPane gör att användaren kan dra i gränsen mellan vänstermeny och tabell
+        // -----------------------------------------------------------------
+        // Final layout assembly
+        // -----------------------------------------------------------------
         SplitPane splitPane = new SplitPane(sourceList, songTable);
-        splitPane.setDividerPositions(0.25); // Sätt startposition för avdelaren
+        splitPane.setDividerPositions(0.25);
 
         root.setTop(topPanel);
         root.setCenter(splitPane);
         root.setBottom(bottomPanel);
 
         Scene scene = new Scene(root, 950, 600);
-        // Ladda CSS-filen (måste ligga i resources-mappen)
-        scene.getStylesheets().add(getClass().getResource("/ipod_style.css").toExternalForm());
+        scene.getStylesheets().add(
+            getClass().getResource("/ipod_style.css").toExternalForm()
+        );
 
         stage.setScene(scene);
         stage.setTitle("myTunes");
@@ -214,7 +267,9 @@ public class ItunesPlayList {
     }
 
     /**
-     * Hjälpmetod för att skapa LCD-displayen (bakgrund + text).
+     * Creates the LCD-style display used in the top panel.
+     *
+     * @return a {@link StackPane} containing the LCD display
      */
     private StackPane createLCDDisplay() {
         StackPane stack = new StackPane();
@@ -223,16 +278,21 @@ public class ItunesPlayList {
 
         VBox textStack = new VBox(2);
         textStack.setAlignment(Pos.CENTER);
+
         lcdTitle.getStyleClass().add("lcd-title");
         lcdArtist.getStyleClass().add("lcd-artist");
 
         textStack.getChildren().addAll(lcdTitle, lcdArtist);
         stack.getChildren().addAll(bg, textStack);
+
         return stack;
     }
 
     /**
-     * Hjälpmetod för att skapa en standardiserad knapp.
+     * Creates a standardized round button with the given icon text.
+     *
+     * @param icon the text or symbol to display on the button
+     * @return a styled {@link Button}
      */
     private Button createRoundButton(String icon) {
         Button b = new Button(icon);
@@ -241,12 +301,11 @@ public class ItunesPlayList {
     }
 
     /**
-     * Konfigurerar kolumnerna i tabellen och hur data ska visas.
+     * Configures the song table columns, selection behavior, and context menus.
      */
     private void setupTable() {
-        // Skapa kolumner
-        TableColumn<Song, String> titleCol = new TableColumn<>("Name");
-        // Berätta för kolumnen vilket fält i DisplaySong den ska läsa från (name)
+        TableColumn<Song, String> titleCol = new TableColumn<>("Title");
+
         titleCol.setCellValueFactory(d -> {
             Song s = d.getValue();
             if (s.getName() != null) {
@@ -273,22 +332,21 @@ public class ItunesPlayList {
             return new SimpleStringProperty("Unknown album");
         });
 
-        TableColumn<Song, String> timeCol = new TableColumn<>("Time");
+        TableColumn<Song, String> timeCol = new TableColumn<>("Length");
         timeCol.setCellValueFactory(d -> {
             Song s = d.getValue();
             if (s.getFormattedLength() != null) {
                 return new SimpleStringProperty(s.getFormattedLength());
             }
-            return new SimpleStringProperty("Unknown time");
+            return new SimpleStringProperty("Unknown length");
         });
 
         songTable.getColumns().setAll(titleCol, artistCol, albumCol, timeCol);
         songTable.getStyleClass().add("song-table");
 
-        // Gör så att kolumnerna fyller ut hela bredden
         songTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        // Lyssnare: När man klickar på en rad i tabellen -> Uppdatera LCD-displayen
+        // Update LCD display when clicking a row in table
         songTable.getSelectionModel().selectedItemProperty().addListener((obs, old, newVal) -> {
             if (newVal != null) {
                 lcdTitle.setText(newVal.getName());
@@ -300,7 +358,7 @@ public class ItunesPlayList {
             }
         });
 
-        // Högerklicksfunktion på låtar för att lägga till och ta bort från spellista
+        // Right click function, to add song to playlist and remove song from playlist
         songTable.setRowFactory(songTableView -> {
             TableRow<Song> row = new TableRow<>();
             ContextMenu contextMenu = new ContextMenu();
@@ -318,14 +376,13 @@ public class ItunesPlayList {
                 removeSelectedSong();
             });
 
-            // Uppdatera när hela ContextMenu visas
+            // Update when showing ContextMenu
             contextMenu.setOnShowing(event -> {
                 addSongSubMenu.getItems().clear();
                 Song selectedSong = row.getItem();
 
                 if (selectedSong != null && !allPlaylistList.isEmpty()) {
                     for (Playlist pl : allPlaylistList) {
-                        // Hoppa över Biblioteket om id är 1
                         if (pl.getId() != null && pl.getId().equals(1L)) continue;
 
                         MenuItem playListItem = new MenuItem(pl.getName());
@@ -368,26 +425,25 @@ public class ItunesPlayList {
     }
 
     /**
-     * Filtrerar låtarna i den aktiva listan baserat på söktexten.
+     * Filters the songs of the currently selected playlist based on the
+     * provided search text.
+     *
+     * @param searchText the text used for filtering
      */
     private void filterSongs(String searchText) {
         Playlist selectedPlaylist = sourceList.getSelectionModel().getSelectedItem();
         if (selectedPlaylist == null) return;
         Long currentList = selectedPlaylist.getId();
 
-        // Hämta ursprunglig data för den valda spellistan
         ObservableList<Song> masterData = FXCollections.observableArrayList(pri.findById(currentList).getSongs());
 
-        // Om sökfältet är tomt, visa allt
         if (searchText == null || searchText.isEmpty()) {
             songTable.setItems(masterData);
             return;
         }
 
-        // Skapa en filtrerad lista som omsluter masterData
         FilteredList<Song> filteredData = new FilteredList<>(masterData, song -> {
             String filter = searchText.toLowerCase();
-            // Returnera true om sökordet finns i namn, artist eller album
             boolean titleMatch = song.getName() != null && song.getName().toLowerCase().contains(filter);
             boolean artistMatch = song.getAlbum() != null &&
                 song.getAlbum().getArtist() != null &&
@@ -403,14 +459,13 @@ public class ItunesPlayList {
     }
 
     /**
-     * Visar en dialogruta för att skapa en ny spellista.
+     * Displays a dialog allowing the user to create a new playlist.
      */
     private void createNewPlaylist() {
         TextInputDialog d = new TextInputDialog("New playlist");
-        // Här ändrar du fönstrets titel och text
-        d.setTitle("Create new playlist");      // Ersätter "Bekräftelse"
-        d.setHeaderText("Enter playlist name"); // Rubriken inuti rutan
-        d.setContentText("Name:");              // Texten bredvid inmatningsfältet
+        d.setTitle("Create new playlist");
+        d.setHeaderText("Enter playlist name");
+        d.setContentText("Name:");
 
         d.showAndWait().ifPresent(name -> {
             if (!name.trim().isEmpty()) {
@@ -422,7 +477,11 @@ public class ItunesPlayList {
     }
 
     /**
-     * Ändra namn på vald spellista (men tillåter inte att man ändrar "Bibliotek"). ??
+     * Renames the currently selected playlist.
+     *
+     * <p>
+     * System playlists such as the main library and favorites cannot be renamed.
+     * </p>
      */
     private void renameSelectedPlaylist() {
         Playlist sel = sourceList.getSelectionModel().getSelectedItem();
@@ -452,7 +511,11 @@ public class ItunesPlayList {
     }
 
     /**
-     * Tar bort vald spellista (men tillåter inte att man tar bort "Bibliotek" eller "Favoriter").
+     * Deletes the currently selected playlist.
+     *
+     * <p>
+     * System playlists (e.g. Library and Favorites) cannot be deleted.
+     * </p>
      */
     private void deleteSelectedPlaylist() {
         Playlist sel = sourceList.getSelectionModel().getSelectedItem();
@@ -464,12 +527,17 @@ public class ItunesPlayList {
     }
 
     /**
-     * Tar bort vald låt från den aktiva spellistan (ej från huvudbiblioteket "Bibliotek").
+     * Removes the selected song from the currently active playlist.
+     *
+     * <p>
+     * Songs cannot be removed directly from the main library.
+     * </p>
      */
     private void removeSelectedSong() {
         Song sel = songTable.getSelectionModel().getSelectedItem();
         Playlist list = sourceList.getSelectionModel().getSelectedItem();
-        // Skydd: Man får inte ta bort låtar direkt från biblioteket i denna vy
+
+        // You can not remove song from Library
         if (sel != null && list != null && list.getId() != null && !list.getId().equals(1L)) {
             pri.removeSong(list, sel);
             list.getSongs().remove(sel);
@@ -479,20 +547,22 @@ public class ItunesPlayList {
     }
 
     /**
-     * Visar en popup-meny för att lägga till vald låt i en annan spellista.
+     * Displays a context menu allowing the user to add the selected song
+     * to another playlist.
+     *
+     * @param anchor the UI element used as the menu anchor
      */
     private void addSelectedSong(Button anchor) {
         Song sel = songTable.getSelectionModel().getSelectedItem();
-        if (sel == null) return; // Ingen låt vald
+        if (sel == null) return;
 
         ContextMenu menu = new ContextMenu();
         for (Playlist pl : allPlaylistList) {
             if (pl.getId() != null && pl.getId().equals(1L))
-                continue; // Man kan inte lägga till i "Bibliotek" (det är källan)
+                continue; // You can not add song to Library
 
             MenuItem itm = new MenuItem(pl.getName());
             itm.setOnAction(e -> {
-                // Om låten inte redan finns i listan, lägg till den
                 if (!pri.isSongInPlaylist(pl, sel)) {
                     try {
                         pri.addSong(pl, sel);
@@ -506,7 +576,7 @@ public class ItunesPlayList {
             });
             menu.getItems().add(itm);
         }
-        // Visa menyn vid knappen
+
         var bounds = anchor.localToScreen(anchor.getBoundsInLocal());
         menu.show(anchor, bounds.getMinX(), bounds.getMaxY());
     }

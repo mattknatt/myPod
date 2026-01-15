@@ -17,6 +17,4 @@ public interface AlbumRepository {
 
     List<Album> findByArtist(Artist artist);
 
-    List<Album> findByGenre(String genre);
-
 }

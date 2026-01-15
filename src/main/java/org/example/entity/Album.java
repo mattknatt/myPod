@@ -60,10 +60,8 @@ public class Album implements DBObject {
             throw new IllegalArgumentException("Required fields (albumId, albumName) can not be null");
         }
 
-        //Try getting cover from url first, if null go for backup image in resources
-        //Backup might be unnecessary here, better to store as null and load default in ui?
+        // Try to load album cover from URL. If unavailable, store null and let UI handle fallback image.
         byte[] cover = generateAlbumCover(dto.artworkUrl100());
-        //todo do this async?
 
         return new Album(dto.collectionId(), dto.collectionName(), dto.primaryGenreName(), dto.releaseYear(), dto.trackCount(), cover, artist);
     }
@@ -145,7 +143,7 @@ public class Album implements DBObject {
     }
 
     /**
-     * generate and returns byte array with cover art
+     * Generate and returns byte array with cover art
      *
      * @param url url pointing to desired cover
      * @return a byte array of the desired cover, or null if the URL image cannot be loaded
@@ -160,7 +158,7 @@ public class Album implements DBObject {
     }
 
     /**
-     * converts image to byte array to be stored as BLOB
+     * Converts image to byte array to be stored as BLOB
      *
      * @param bi buffered jpg image
      * @return image converted to byte array

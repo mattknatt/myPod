@@ -601,7 +601,6 @@ public class MyPod extends Application {
         updateMenu();
     }
 
-
     private void showAlbumSongs(ObjectLabel selection) {
         screenContent.getChildren().clear();
         menuLabels.clear();
@@ -630,28 +629,25 @@ public class MyPod extends Application {
         updateMenu();
     }
 
-
     private void showNowPlaying(ObjectLabel selection) {
         screenContent.getChildren().clear();
         menuLabels.clear();
         selectedIndex = 0;
         currentScreenName = "NowPlaying";
 
-        Song currentSong = null;
-        if (songs != null && selection.object() != null) {
-            currentSong = songs.stream()
-                .filter(s -> s.getId().equals(selection.object().getId()))
-                .findFirst()
-                .orElse(null);
+        if (selection.object() == null) {
+            return;
         }
 
-        // Skapa elementen och tilldela klasser
+        Song currentSong = (Song) selection.object();
+
+        // Header
         Label header = new Label("▶ NOW PLAYING");
         header.getStyleClass().add("now-playing-header");
 
+        // Album art
         ImageView albumArtView = new ImageView();
-
-        if (currentSong != null && currentSong.getAlbum() != null) {
+        if (currentSong.getAlbum() != null) {
             Image cover = currentSong.getAlbum().getCoverImage();
             if (cover != null) {
                 albumArtView.setImage(cover);
@@ -668,12 +664,13 @@ public class MyPod extends Application {
                 -fx-background-color: white;
             """);
 
-        Label titleLabel = new Label(selection.getText());
+        // Song title
+        Label titleLabel = new Label(currentSong.getName());
         titleLabel.getStyleClass().add("now-playing-title");
         titleLabel.setWrapText(true);
 
         String artistName;
-        if (currentSong != null && currentSong.getAlbum() != null && currentSong.getAlbum().getArtist() != null) {
+        if (currentSong.getAlbum() != null && currentSong.getAlbum().getArtist() != null) {
             artistName = currentSong.getAlbum().getArtist().getName();
         } else {
             artistName = "Unknown Artist";
@@ -682,7 +679,7 @@ public class MyPod extends Application {
         artistLabel.getStyleClass().add("now-playing-artist");
 
         String albumName;
-        if (currentSong != null && currentSong.getAlbum() != null) {
+        if (currentSong.getAlbum() != null) {
             albumName = currentSong.getAlbum().getName();
         } else {
             albumName = "Unknown Album";
@@ -690,6 +687,7 @@ public class MyPod extends Application {
         Label albumLabel = new Label(albumName);
         albumLabel.getStyleClass().add("now-playing-album");
 
+        // Progress bar
         progressBar = new ProgressBar(0);
         progressBar.getStyleClass().add("ipod-progress-bar");
 
@@ -704,16 +702,15 @@ public class MyPod extends Application {
         // Layout-behållaren
         VBox layout = new VBox(3);
         layout.getStyleClass().add("now-playing-container");
-        layout.getChildren().addAll(header, albumArtView, titleLabel, artistLabel, albumLabel, progressStack);
         layout.setAlignment(Pos.CENTER);
+        layout.getChildren().addAll(header, albumArtView, titleLabel, artistLabel, albumLabel, progressStack);
 
         screenContent.getChildren().add(layout);
 
-        if (currentSong != null) {
-            String previewUrl = currentSong.getPreviewUrl();
-            if (previewUrl != null && !previewUrl.isBlank()) {
-                playPreview(previewUrl);
-            }
+        // Play preview
+        String previewUrl = currentSong.getPreviewUrl();
+        if (previewUrl != null && !previewUrl.isBlank()) {
+            playPreview(previewUrl);
         }
     }
 
@@ -786,7 +783,7 @@ public class MyPod extends Application {
 
     private record ObjectLabel(
         Label label,
-        DBObject object) { // object is null for static menu items like "Edit Playlists"
+        DBObject object) { // Object is null for static menu items like "Edit Playlists"
 
         public String getText() {
             return label.getText();
