@@ -47,85 +47,116 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Huvudklassen för applikationen "MyPod".
- * Denna klass bygger upp GUI:t (simulerar en iPod) och hanterar navigering.
+ * Main application class for {@code MyPod}.
+ * <p>
+ * This class is responsible for:
+ * <ul>
+ *     <li>Bootstrapping the JavaFX application</li>
+ *     <li>Constructing the iPod-style graphical user interface</li>
+ *     <li>Handling keyboard navigation and menu state</li>
+ *     <li>Coordinating playback of song previews</li>
+ * </ul>
  */
 public class MyPod extends Application {
     private static final Logger logger = LoggerFactory.getLogger(MyPod.class);
     private String currentScreenName = "";
     private Playlist currentActivePlaylist = null;
 
-    // --- DATA-LAGER ---
-    // Repositories används för att hämta data från databasen istället för att hårdkoda den
+    // -------------------------------------------------------------------------
+    // Data layer
+    // -------------------------------------------------------------------------
+
+    /**
+     * Repositories used for song/artist/album/playlist persistence operations.
+     */
     private final SongRepository songRepo = new SongRepositoryImpl(PersistenceManager.getEntityManagerFactory());
     private final ArtistRepository artistRepo = new ArtistRepositoryImpl(PersistenceManager.getEntityManagerFactory());
     private final AlbumRepository albumRepo = new AlbumRepositoryImpl(PersistenceManager.getEntityManagerFactory());
     private final PlaylistRepository playlistRepo = new PlaylistRepositoryImpl(PersistenceManager.getEntityManagerFactory());
+
+    /**
+     * Client used to fetch preview data from the iTunes API.
+     */
     private final ItunesApiClient apiClient = new ItunesApiClient();
 
-    // Listor som håller data vi hämtat från databasen
+    /**
+     * Cached data loaded from the database.
+     */
     private List<Song> songs;
     private List<Artist> artists;
     private List<Album> albums;
     private List<Playlist> playlists;
 
-    // --- MENY-DATA ---
-    // Huvudmenyns alternativ. "ObservableList" är en speciell lista i JavaFX
-    // som GUI:t kan "lyssna" på, även om vi här mest använder den som en vanlig lista.
+    // -------------------------------------------------------------------------
+    // Menu data
+    // -------------------------------------------------------------------------
+
+    /**
+     * Entries displayed in the main menu.
+     * <p>
+     * {@link ObservableList} is used so JavaFX can react to changes if needed.
+     */
     private final ObservableList<String> mainMenu = FXCollections.observableArrayList(
         "Songs", "Artists", "Albums", "Playlists");
 
-    // En lista med själva Label-objekten som visas på skärmen (för att kunna markera/avmarkera dem)
+    /**
+     * Labels currently rendered on screen.
+     * Used to apply selection highlighting and resolve user actions.
+     */
     private final List<ObjectLabel> menuLabels = new ArrayList<>();
 
-    // --- GUI-TILLSTÅND ---
-    private int selectedIndex = 0;      // Håller koll på vilket menyval som är markerat just nu
-    private VBox screenContent;         // Behållaren för texten/listan inuti "skärmen"
-    private StackPane myPodScreen;      // Själva skärm-containern
-    private ScrollPane scrollPane;      // Gör att vi kan scrolla om listan är lång
-    private boolean isMainMenu = true;  // Flagga för att veta om vi är i huvudmenyn eller en undermeny
+    // -------------------------------------------------------------------------
+    // UI state
+    // -------------------------------------------------------------------------
 
-    private MediaPlayer mediaPlayer;
-    private ProgressBar progressBar;
-    private ProgressBar volumeBar;
-    private PauseTransition volumeHideTimer;
+    private int selectedIndex = 0;      // Index of the currently selected menu item
+    private VBox screenContent;         // Container holding the current screen content
+    private StackPane myPodScreen;      // Root container representing the device screen
+    private ScrollPane scrollPane;      // Scroll container used for long lists
+    private boolean isMainMenu = true;  // Flag indicating whether the user is currently in the main menu
+
+    private MediaPlayer mediaPlayer;        // Media player instance for song previews
+    private ProgressBar progressBar;        // Progress bar showing playback position
+    private ProgressBar volumeBar;          // Overlay progress bar used to display volume changes
+    private PauseTransition volumeHideTimer;// Timer controlling how long the volume overlay is visible
+
+    // -------------------------------------------------------------------------
+    // Application lifecycle
+    // -------------------------------------------------------------------------
 
     @Override
     public void start(Stage primaryStage) {
-        // --- LAYOUT SETUP ---
-        // BorderPane är bra för att placera saker i Top, Bottom, Center, Left, Right.
+        // Root layout
         BorderPane root = new BorderPane();
-        root.setPadding(new Insets(20));        // Lite luft runt kanten
-        root.getStyleClass().add("ipod-body");  // CSS-klass för själva iPod-kroppen
+        root.setPadding(new Insets(20));
+        root.getStyleClass().add("ipod-body");
 
-        // 1. Skapa och placera skärmen högst upp
+        // Device screen
         myPodScreen = createMyPodScreen();
         root.setTop(myPodScreen);
 
-        // 2. Skapa och placera klickhjulet längst ner
+        // Click wheel
         StackPane clickWheel = createClickWheel();
         root.setBottom(clickWheel);
-        BorderPane.setMargin(clickWheel, new Insets(30, 0, 0, 0)); // Marginal ovanför hjulet
+        BorderPane.setMargin(clickWheel, new Insets(30, 0, 0, 0));
 
-        // --- BAKGRUNDSLADDNING ---
-        // Vi använder en Task för att ladda databasen. Detta är kritiskt!
-        // Om vi laddar databasen direkt i start() fryser hela fönstret tills det är klart.
+        // ---------------------------------------------------------------------
+        // Background initialization
+        // ---------------------------------------------------------------------
+
         Task<Void> initTask = new Task<>() {
             @Override
             protected Void call() {
-                initializeData(); // Detta tunga jobb körs i en separat tråd
+                initializeData();
                 return null;
             }
         };
 
-        // När datan är laddad och klar:
         initTask.setOnSucceeded(e -> {
-            if (isMainMenu) showMainMenu(); // Rita upp menyn nu när vi har data
+            if (isMainMenu) showMainMenu();
         });
 
-        // Om något går fel (t.ex. ingen databasanslutning):
         initTask.setOnFailed(e -> {
-            // Platform.runLater måste användas när vi ändrar GUI:t från en annan tråd
             Platform.runLater(() -> {
                 Label error = new Label("Failed to load data.");
                 error.setStyle("-fx-text-fill: red;");
@@ -133,12 +164,14 @@ public class MyPod extends Application {
             });
         });
 
-        // Starta laddningstråden
         new Thread(initTask).start();
 
-        // --- SCEN OCH CSS ---
+        // ---------------------------------------------------------------------
+        // Scene and styling
+        // ---------------------------------------------------------------------
+
         Scene scene = new Scene(root, 300, 500);
-        try { // Försök ladda CSS-filen för styling
+        try {
             scene.getStylesheets().add(getClass().getResource("/ipod_style.css").toExternalForm());
         } catch (Exception e) {
             logger.info("Start: CSS not found");
@@ -147,9 +180,8 @@ public class MyPod extends Application {
         myPodScreen.setFocusTraversable(true);
         myPodScreen.setOnMouseClicked(e -> myPodScreen.requestFocus());
 
-        // Koppla tangentbordslyssnare för att kunna styra menyn
         setupNavigation(scene);
-        showMainMenu(); // Initiera första vyn (tom tills data laddats klart)
+        showMainMenu();
 
         primaryStage.setTitle("myPod");
         primaryStage.setScene(scene);
@@ -157,8 +189,14 @@ public class MyPod extends Application {
         primaryStage.show();
     }
 
+    // -------------------------------------------------------------------------
+    // UI construction
+    // -------------------------------------------------------------------------
+
     /**
-     * Skapar den visuella skärmen (den "lysande" rutan).
+     * Creates the visual screen area of the device.
+     *
+     * @return configured {@link StackPane} representing the display
      */
     private StackPane createMyPodScreen() {
         StackPane screenContainer = new StackPane();
@@ -169,22 +207,20 @@ public class MyPod extends Application {
         screenContainer.setPrefSize(width, height);
         screenContainer.setMaxSize(width, height);
 
-        // Skapa en "mask" (Rectangle) för att klippa innehållet så hörnen blir rundade
         Rectangle clip = new Rectangle(width, height);
         clip.setArcWidth(15);
         clip.setArcHeight(15);
         screenContainer.setClip(clip);
 
         scrollPane = new ScrollPane();
-        screenContent = new VBox(2); // VBox staplar element vertikalt. 2px mellanrum.
+        screenContent = new VBox(2);
         screenContent.setAlignment(Pos.TOP_LEFT);
         screenContent.setPadding(new Insets(10, 5, 10, 5));
 
-        // Konfigurera scrollbar så den inte syns, men fungerar
         scrollPane.setContent(screenContent);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); // Ingen horisontell scroll
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); // Ingen synlig vertikal scroll
-        scrollPane.setFitToWidth(true);                             // Innehållet ska fylla bredden
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setFitToWidth(true);
         scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
 
         screenContainer.getChildren().add(scrollPane);
@@ -192,52 +228,50 @@ public class MyPod extends Application {
     }
 
     /**
-     * Skapar klickhjulet med knappar.
+     * Creates the click wheel with menu, navigation and playback controls.
      */
     private StackPane createClickWheel() {
         StackPane wheel = new StackPane();
         wheel.setPrefSize(200, 200);
 
-        // Det stora yttre hjulet
         Circle outerWheel = new Circle(100);
         outerWheel.getStyleClass().add("outer-wheel");
 
-        // Den lilla knappen i mitten
         Circle centerButton = new Circle(30);
         centerButton.getStyleClass().add("center-button");
 
-        // Etiketter för knapparna (MENU, Play, Fram, Bak)
         Label menu = new Label("MENU");
         menu.getStyleClass().add("wheel-text-menu");
-        // Om man klickar på ordet MENU med musen går man tillbaka
         menu.setOnMouseClicked(e -> showMainMenu());
 
         Label ff = new Label("⏭");
         ff.getStyleClass().add("wheel-text");
         ff.setId("ff-button");
+
         Label rew = new Label("⏮");
         rew.getStyleClass().add("wheel-text");
         rew.setId("rew-button");
 
-        // Play/pause-funktion
         Label playPauseLabel = new Label("▶/⏸");
         playPauseLabel.getStyleClass().add("wheel-text-play");
-
         playPauseLabel.setFocusTraversable(true);
 
-        playPauseLabel.setOnMouseClicked(e ->
-            playPauseFunction());
-
+        playPauseLabel.setOnMouseClicked(e -> playPauseFunction());
         playPauseLabel.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.SPACE) {
                 playPauseFunction();
             }
         });
 
-        wheel.getChildren().addAll(outerWheel, centerButton, menu, ff, rew, playPauseLabel);
+        wheel.getChildren().addAll(
+            outerWheel, centerButton, menu, ff, rew, playPauseLabel);
+
         return wheel;
     }
 
+    /**
+     * Toggles playback state of the active {@link MediaPlayer}.
+     */
     private void playPauseFunction() {
         if (mediaPlayer != null) {
             if (mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
@@ -248,8 +282,19 @@ public class MyPod extends Application {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Navigation & interaction
+    // -------------------------------------------------------------------------
+
     /**
-     * Hanterar tangentbordsnavigering (Upp, Ner, Enter, Escape).
+     * Configures keyboard navigation for menus and playback.
+     * <p>
+     * Supported keys:
+     * <ul>
+     *     <li>UP / DOWN – navigate menu or adjust volume</li>
+     *     <li>ENTER – select item</li>
+     *     <li>ESC – navigate back</li>
+     * </ul>
      */
     private void setupNavigation(Scene scene) {
         scene.setOnKeyPressed(event -> {
@@ -276,9 +321,7 @@ public class MyPod extends Application {
                     showScreen("Artists");
                 } else if ("PlaylistSongs".equals(currentScreenName)) {
                     showScreen("Playlists");
-                }
-                // ESCAPE fungerar som "Back"-knapp
-                else {
+                } else {
                     showMainMenu();
                 }
                 event.consume();
@@ -286,33 +329,23 @@ public class MyPod extends Application {
             }
 
             int totalItems = menuLabels.size();
-            if (totalItems == 0) return; // Gör inget om listan är tom
+            if (totalItems == 0) return;
 
             int newIndex = selectedIndex;
 
-            // Navigera NER
             if (event.getCode() == KeyCode.DOWN) {
-                // Modulo (%) gör att om vi trycker ner på sista elementet, hamnar vi på 0 igen.
-                newIndex = (selectedIndex + 1) % totalItems;
-            }
-            // Navigera UPP
-            else if (event.getCode() == KeyCode.UP) {
-                // Matematisk formel för att loop'a bakåt (från 0 till sista)
-                newIndex = (selectedIndex - 1 + totalItems) % totalItems;
-            }
-            // Välj (ENTER)
-            else if (event.getCode() == KeyCode.ENTER) {
+                newIndex = (selectedIndex + 1) % totalItems; // Modulo (%) gör att om vi trycker ner på sista elementet, hamnar vi på 0 igen.
+            } else if (event.getCode() == KeyCode.UP) {
+                newIndex = (selectedIndex - 1 + totalItems) % totalItems; // Matematisk formel för att loop'a bakåt (från 0 till sista)
+            } else if (event.getCode() == KeyCode.ENTER) {
                 if (isMainMenu) {
-                    // Om vi är i huvudmenyn, gå in i en undermeny (t.ex. "Songs")
                     showScreen(mainMenu.get(selectedIndex));
                 } else {
-                    // Om vi är i en lista, hantera valet (spela låt etc)
                     handleSelection(menuLabels.get(selectedIndex));
                 }
                 return;
             }
 
-            // Om indexet ändrades, uppdatera grafiken
             if (newIndex != selectedIndex) {
                 selectedIndex = newIndex;
                 updateMenu();
@@ -320,6 +353,11 @@ public class MyPod extends Application {
         });
     }
 
+    /**
+     * Adjusts playback volume and displays the volume overlay.
+     *
+     * @param delta positive or negative volume delta
+     */
     private void adjustVolume(double delta) {
         if (mediaPlayer == null) return;
 
@@ -329,6 +367,9 @@ public class MyPod extends Application {
         showVolumeOverlay();
     }
 
+    /**
+     * Displays the volume overlay temporarily using fade animations.
+     */
     private void showVolumeOverlay() {
         if (volumeHideTimer != null) {
             volumeHideTimer.stop();
@@ -348,7 +389,7 @@ public class MyPod extends Application {
     }
 
     /**
-     * Uppdaterar visuellt vilken rad som är vald (lägger till CSS-klass).
+     * Updates menu selection styling and ensures the selected item is visible.
      */
     private void updateMenu() {
         for (int i = 0; i < menuLabels.size(); i++) {
@@ -362,7 +403,7 @@ public class MyPod extends Application {
     }
 
     /**
-     * Avancerad metod för att automatiskt scrolla ScrollPane till det markerade elementet.
+     * Automatically scrolls the {@link ScrollPane} so the given label is visible.
      */
     private void ensureVisible(Label node) {
         Platform.runLater(() -> {
@@ -381,7 +422,12 @@ public class MyPod extends Application {
     }
 
     /**
-     * Visar en undermeny (Songs, Artists etc).
+     * Displays a secondary screen such as Songs, Artists, Albums or Playlists.
+     * <p>
+     * This method clears the current screen, resets navigation state and
+     * populates the view based on the selected screen name.
+     *
+     * @param screenName the identifier of the screen to display
      */
     private void showScreen(String screenName) {
         screenContent.getChildren().clear(); // Rensa skärmen
@@ -423,7 +469,9 @@ public class MyPod extends Application {
     }
 
     /**
-     * Hjälpmetod för att lägga till en rad i listan på skärmen.
+     * Adds a static text-based menu entry to the current screen.
+     *
+     * @param text the text to display in the menu
      */
     private void addMenuItem(String text) {
         ObjectLabel stringLabel = new ObjectLabel(new Label(text), null);
@@ -439,7 +487,12 @@ public class MyPod extends Application {
     }
 
     /**
-     * Hjälpmetod för att lägga till en rad i listan på skärmen som pekar på ett object
+     * Adds a menu entry that represents a domain object.
+     * <p>
+     * The object's name is displayed and the object itself is stored
+     * for later selection handling.
+     *
+     * @param object the domain object associated with this menu entry
      */
     private void addMenuItem(DBObject object) {
         ObjectLabel objectLabel = new ObjectLabel(new Label(object.getName()), object);
@@ -451,7 +504,7 @@ public class MyPod extends Application {
     }
 
     /**
-     * Visar huvudmenyn igen.
+     * Displays the main menu and resets all navigation state.
      */
     private void showMainMenu() {
         screenContent.getChildren().clear();
@@ -472,7 +525,11 @@ public class MyPod extends Application {
     }
 
     /**
-     * Vad som händer när man trycker Enter på en låt/artist.
+     * Handles user selection when the ENTER key is pressed.
+     * <p>
+     * Behavior depends on the currently active screen and the selected item.
+     *
+     * @param selection the selected menu entry
      */
     private void handleSelection(ObjectLabel selection) {
         System.out.println("User selected: " + selection.getText());
@@ -506,6 +563,11 @@ public class MyPod extends Application {
         }
     }
 
+    /**
+     * Opens a playlist and displays its contained songs.
+     *
+     * @param p the playlist to open
+     */
     private void openPlaylist(Playlist p) {
         Playlist updatedPlaylist = playlistRepo.findById(p.getId());
 
@@ -538,10 +600,11 @@ public class MyPod extends Application {
     }
 
     /**
-     * Öppnar det externa fönstret "ItunesPlayList".
+     * Opens the external playlist management window.
+     * <p>
+     * When playlists are modified, the current view is refreshed accordingly.
      */
     private void openMusicPlayer() {
-
         if (this.playlists == null) {
             this.playlists = new ArrayList<>();
         }
@@ -573,6 +636,11 @@ public class MyPod extends Application {
         itunesPlayList.showLibrary();
     }
 
+    /**
+     * Displays all albums belonging to the selected artist.
+     *
+     * @param selection the selected artist entry
+     */
     private void showArtistAlbums(ObjectLabel selection) {
         screenContent.getChildren().clear();
         menuLabels.clear();
@@ -601,6 +669,11 @@ public class MyPod extends Application {
         updateMenu();
     }
 
+    /**
+     * Displays all songs belonging to the selected album.
+     *
+     * @param selection the selected album entry
+     */
     private void showAlbumSongs(ObjectLabel selection) {
         screenContent.getChildren().clear();
         menuLabels.clear();
@@ -629,6 +702,11 @@ public class MyPod extends Application {
         updateMenu();
     }
 
+    /**
+     * Displays the "Now Playing" screen and starts playback of a song preview.
+     *
+     * @param selection the selected song entry
+     */
     private void showNowPlaying(ObjectLabel selection) {
         screenContent.getChildren().clear();
         menuLabels.clear();
@@ -691,7 +769,7 @@ public class MyPod extends Application {
         progressBar = new ProgressBar(0);
         progressBar.getStyleClass().add("ipod-progress-bar");
 
-        // --- Volume overlay (positioned on top of progress bar) ---
+        // Volume overlay (positioned on top of progress bar)
         ensureVolumeBarExists();
         volumeBar.setOpacity(0); // start hidden
 
@@ -699,7 +777,6 @@ public class MyPod extends Application {
         StackPane progressStack = new StackPane(progressBar, volumeBar);
         progressStack.setAlignment(Pos.CENTER);
 
-        // Layout-behållaren
         VBox layout = new VBox(3);
         layout.getStyleClass().add("now-playing-container");
         layout.setAlignment(Pos.CENTER);
@@ -714,6 +791,12 @@ public class MyPod extends Application {
         }
     }
 
+    /**
+     * Plays a song preview from the given URL and binds playback progress
+     * to the progress bar.
+     *
+     * @param url preview stream URL
+     */
     private void playPreview(String url) {
         try {
             if (mediaPlayer != null) {
@@ -753,6 +836,9 @@ public class MyPod extends Application {
         }
     }
 
+    /**
+     * Lazily creates the volume overlay progress bar if it does not exist.
+     */
     private void ensureVolumeBarExists() {
         if (volumeBar == null) {
             volumeBar = new ProgressBar(0.5); // Standard volume set to 50%
@@ -762,15 +848,15 @@ public class MyPod extends Application {
     }
 
     /**
-     * Initierar databasen och hämtar all data.
-     * OBS: Denna körs i en bakgrundstråd (via Task i start-metoden).
+     * Initializes the database and loads all required data into memory.
+     * <p>
+     * This method is executed on a background thread.
      */
     private void initializeData() {
         try {
             DatabaseInitializer initializer = new DatabaseInitializer(apiClient, songRepo, albumRepo, artistRepo, playlistRepo);
             initializer.init();
 
-            // Hämta data till minnet
             this.songs = songRepo.findAll();
             this.artists = artistRepo.findAll();
             this.albums = albumRepo.findAll();
@@ -780,10 +866,18 @@ public class MyPod extends Application {
         }
     }
 
+    /**
+     * Wrapper record binding a UI label to an optional domain object.
+     * <p>
+     * Used to distinguish static menu items from selectable entities.
+     */
     private record ObjectLabel(
         Label label,
         DBObject object) { // Object is null for static menu items like "Edit Playlists"
 
+        /**
+         * @return the text displayed by this menu item
+         */
         public String getText() {
             return label.getText();
         }
