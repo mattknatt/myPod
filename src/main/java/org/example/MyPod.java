@@ -334,9 +334,9 @@ public class MyPod extends Application {
             int newIndex = selectedIndex;
 
             if (event.getCode() == KeyCode.DOWN) {
-                newIndex = (selectedIndex + 1) % totalItems; // Modulo (%) gör att om vi trycker ner på sista elementet, hamnar vi på 0 igen.
+                newIndex = (selectedIndex + 1) % totalItems; // %, if scrolling past last line, get back to 0
             } else if (event.getCode() == KeyCode.UP) {
-                newIndex = (selectedIndex - 1 + totalItems) % totalItems; // Matematisk formel för att loop'a bakåt (från 0 till sista)
+                newIndex = (selectedIndex - 1 + totalItems) % totalItems; // Formula for looping backwards, from 0 to last
             } else if (event.getCode() == KeyCode.ENTER) {
                 if (isMainMenu) {
                     showScreen(mainMenu.get(selectedIndex));
@@ -395,10 +395,10 @@ public class MyPod extends Application {
     private void updateMenu() {
         for (int i = 0; i < menuLabels.size(); i++) {
             if (i == selectedIndex) {
-                menuLabels.get(i).label().getStyleClass().add("selected-item"); // Gör texten markerad
-                ensureVisible(menuLabels.get(i).label());                       // Se till att scrollbar flyttas så vi ser valet
+                menuLabels.get(i).label().getStyleClass().add("selected-item");
+                ensureVisible(menuLabels.get(i).label());
             } else {
-                menuLabels.get(i).label().getStyleClass().remove("selected-item"); // Ta bort markering
+                menuLabels.get(i).label().getStyleClass().remove("selected-item");
             }
         }
     }
@@ -412,12 +412,9 @@ public class MyPod extends Application {
             double viewportHeight = scrollPane.getViewportBounds().getHeight();
             double nodeY = node.getBoundsInParent().getMinY();
 
-            // Om innehållet är högre än skärmen, räkna ut var vi ska scrolla
             if (contentHeight > viewportHeight) {
-                // Beräkna positionen (0.0 är toppen, 1.0 är botten)
-                double scrollTarget = nodeY / (contentHeight - viewportHeight);
-                // Sätt värdet men tvinga det att vara mellan 0 och 1
-                scrollPane.setVvalue(Math.min(1.0, Math.max(0.0, scrollTarget)));
+                double scrollTarget = nodeY / (contentHeight - viewportHeight); // Calculate position, 0.0 top, 1.0 bottom
+                scrollPane.setVvalue(Math.min(1.0, Math.max(0.0, scrollTarget))); // Set value between 0.0 and 1.0
             }
         });
     }
@@ -431,17 +428,16 @@ public class MyPod extends Application {
      * @param screenName the identifier of the screen to display
      */
     private void showScreen(String screenName) {
-        screenContent.getChildren().clear(); // Rensa skärmen
-        menuLabels.clear();                  // Rensa listan med menyval
-        isMainMenu = false;                  // Vi är inte i huvudmenyn längre
-        selectedIndex = 0;                   // Återställ markör till toppen
+        screenContent.getChildren().clear();
+        menuLabels.clear();
+        isMainMenu = false;
+        selectedIndex = 0; // Reset marker to top
         currentScreenName = screenName;
-        // Rubrik
+
         Label screenTitle = new Label(screenName);
         screenTitle.getStyleClass().add("screen-title");
         screenContent.getChildren().add(screenTitle);
 
-        // Fyll på med rätt data beroende på användarens val
         switch (screenName) {
             case "Songs" -> {
                 if (songs != null && !songs.isEmpty()) {
@@ -466,7 +462,7 @@ public class MyPod extends Application {
             }
         }
 
-        updateMenu(); // Uppdatera så första valet är markerat
+        updateMenu();
     }
 
     /**
@@ -477,7 +473,7 @@ public class MyPod extends Application {
     private void addMenuItem(String text) {
         ObjectLabel stringLabel = new ObjectLabel(new Label(text), null);
         stringLabel.label().getStyleClass().add("menu-item");
-        stringLabel.label().setMaxWidth(Double.MAX_VALUE); // Gör att raden fyller hela bredden (snyggare markering)
+        stringLabel.label().setMaxWidth(Double.MAX_VALUE);
 
         if ("Edit Playlists".equals(text)) {
             stringLabel.label().setStyle("-fx-font-weight: bold; -fx-underline: true;");
@@ -498,7 +494,7 @@ public class MyPod extends Application {
     private void addMenuItem(DBObject object) {
         ObjectLabel objectLabel = new ObjectLabel(new Label(object.getName()), object);
         objectLabel.label().getStyleClass().add("menu-item");
-        objectLabel.label().setMaxWidth(Double.MAX_VALUE); // Gör att raden fyller hela bredden (snyggare markering)
+        objectLabel.label().setMaxWidth(Double.MAX_VALUE);
 
         menuLabels.add(objectLabel);
         screenContent.getChildren().add(objectLabel.label());

@@ -2,7 +2,6 @@ package org.example;
 
 import org.example.entity.Artist;
 import org.example.entity.Song;
-import org.example.repo.AlbumRepositoryImpl;
 import org.example.repo.SongRepositoryImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
