@@ -163,7 +163,7 @@ public class ItunesPlayList {
                     super.updateItem(playlist, empty);
                     if (empty || playlist == null) {
                         setText(null);
-                        setContextMenu(null); // Ingen meny på tom rad
+                        setContextMenu(null);
                     } else {
                         setText(playlist.getName());
                     }
@@ -353,7 +353,7 @@ public class ItunesPlayList {
 
         songTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        // Update LCD display when clicking a row in table
+        // Update LCD display when clicking on a row in a table
         songTable.getSelectionModel().selectedItemProperty().addListener((obs, old, newVal) -> {
             if (newVal != null) {
                 lcdTitle.setText(newVal.getName());
@@ -543,7 +543,7 @@ public class ItunesPlayList {
         Song sel = songTable.getSelectionModel().getSelectedItem();
         Playlist list = sourceList.getSelectionModel().getSelectedItem();
 
-        // You can not remove song from Library
+        // You cannot remove song from Library
         if (sel != null && list != null && list.getId() != null && !list.getId().equals(1L)) {
             pri.removeSong(list, sel);
             list.getSongs().remove(sel);
@@ -565,7 +565,7 @@ public class ItunesPlayList {
         ContextMenu menu = new ContextMenu();
         for (Playlist pl : allPlaylistList) {
             if (pl.getId() != null && pl.getId().equals(1L))
-                continue; // You can not add song to Library
+                continue; // You cannot add song to Library
 
             MenuItem itm = new MenuItem(pl.getName());
             itm.setOnAction(e -> {
