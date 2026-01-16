@@ -32,7 +32,6 @@ import org.example.entity.Artist;
 import org.example.entity.DBObject;
 import org.example.entity.Playlist;
 import org.example.entity.Song;
-import org.example.logging.LoggingConnection;
 import org.example.repo.SongRepository;
 import org.example.repo.AlbumRepository;
 import org.example.repo.ArtistRepository;
