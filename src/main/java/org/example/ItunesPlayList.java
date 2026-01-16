@@ -266,9 +266,12 @@ public class ItunesPlayList {
         root.setBottom(bottomPanel);
 
         Scene scene = new Scene(root, 950, 600);
-        scene.getStylesheets().add(
-            getClass().getResource("/ipod_style.css").toExternalForm()
-        );
+        var cssResource = getClass().getResource("/ipod_style.css");
+        if (cssResource != null) {
+            scene.getStylesheets().add(cssResource.toExternalForm());
+        } else {
+            logger.warn("Stylesheet /ipod_style.css not found");
+        }
 
         stage.setScene(scene);
         stage.setTitle("myTunes");
@@ -353,7 +356,7 @@ public class ItunesPlayList {
         songTable.getColumns().setAll(titleCol, artistCol, albumCol, timeCol);
         songTable.getStyleClass().add("song-table");
 
-        songTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        songTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
 
         // Update LCD display when clicking on a row in a table
         songTable.getSelectionModel().selectedItemProperty().addListener((obs, old, newVal) -> {
@@ -528,9 +531,14 @@ public class ItunesPlayList {
     private void deleteSelectedPlaylist() {
         Playlist sel = sourceList.getSelectionModel().getSelectedItem();
         if (sel != null && sel.getId() != null && !sel.getId().equals(1L) && !sel.getId().equals(2L)) {
-            pri.deletePlaylist(sel);
-            allPlaylistList.remove(sel);
-            refresh();
+            try {
+                pri.deletePlaylist(sel);
+                allPlaylistList.remove(sel);
+                refresh();
+            } catch (Exception ex) {
+                logger.error("deleteSelectedPlaylist: failed to delete", ex);
+                new Alert(Alert.AlertType.ERROR, "Failed to delete playlist: " + ex.getMessage()).showAndWait();
+            }
         }
     }
 
@@ -547,10 +555,15 @@ public class ItunesPlayList {
 
         // You cannot remove song from Library
         if (sel != null && list != null && list.getId() != null && !list.getId().equals(1L)) {
-            pri.removeSong(list, sel);
-            list.getSongs().remove(sel);
-            songTable.getItems().remove(sel);
-            refresh();
+            try {
+                pri.removeSong(list, sel);
+                list.getSongs().remove(sel);
+                songTable.getItems().remove(sel);
+                refresh();
+            } catch (Exception ex) {
+                logger.error("removeSelectedSong: failed to remove", ex);
+                new Alert(Alert.AlertType.ERROR, "Failed to remove song: " + ex.getMessage()).showAndWait();
+            }
         }
     }
 
