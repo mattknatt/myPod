@@ -1,62 +1,80 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/_uV8Mn8f)
-# 📘 Projektarbete: JPA + Hibernate med GitHub-flöde
+# myPod — Music Player with iTunes Integration
 
-Projektet genomförs som antingen en Java CLI-applikation eller med hjälp av JavaFX om ni vill ha ett grafiskt gränssnitt.
-Arbetet utförs i grupper om fyra deltagare. Ni bildar grupperna genom att antingen skapa en ny grupp eller
-ansluta till en befintlig grupp via GitHub Classrooms.
+A sleek, retro-inspired music player built with **JavaFX** and **JPA/Hibernate**.
+Developed as a group assignment at **IT-Högskolan**, focusing on modern Java development, relational persistence, and external API integration.
 
-Projektet ska använda en relationsdatabas, där MySQL eller PostgreSQL rekommenderas.
-Kommunikation med databasen ska ske med JPA och Hibernate, enligt code first-metoden.
+![Java](https://img.shields.io/badge/Java-25-orange)
+![Hibernate](https://img.shields.io/badge/Hibernate-7.2-blue)
+![JavaFX](https://img.shields.io/badge/JavaFX-25-green)
+![MySQL](https://img.shields.io/badge/MySQL-9.5-blue)
 
-## 🗓️ Veckoplanering med Checklista
-### ✅ Vecka 1 – Grundläggning och struktur
-- [ ] Klona GitHub-repo
-- [ ] Konfigurera persistence.xml eller använd PersistenceConfiguration i kod
-- [ ] Skapa entiteter och verifiera tabellgenerering
-- [ ] Lägg till relationer (One-to-Many, Many-to-Many)
-- [ ] Arbeta på feature-branches och använd pull requests för kodgranskning
+---
 
-### ✅ Vecka 2 – Funktionalitet och relationer
-- [ ] Dela upp funktioner mellan gruppmedlemmar
-- [ ] Implementera funktionalitet för huvudentiteter
-- [ ] Testa queries med EntityManager
-- [ ] Dokumentera större designbeslut i PR-beskrivningar
-- [ ] Säkerställ att alla merges sker via kodgranskning
+## Overview
 
-### ✅ Vecka 3 – Finslipning och presentation
-- [ ] Lägg till validering, felhantering och loggning
-- [ ] Skriv enhetstester för centrala funktioner
-- [ ] Förbered demo (~10 min):
-- [ ] Visa applikationen (CLI-kommandon eller GUI)
-- [ ] Gå igenom datamodellen och relationerna
+**myPod** is a desktop application that recreates the classic iPod experience.
+It features a custom **Click Wheel** navigation interface for browsing artists, albums, and songs retrieved from the **iTunes Search API**.
 
-## 🎯 Projektförslag
-### Spelturnering / E-sportplattform 🎮
+Fetched data is stored locally, allowing users to build and manage their own music library and playlists.
 
-One-to-Many: En turnering → flera matcher
+---
 
-Many-to-Many: Spelare ↔ Lag
+## Tech Stack
 
-### Film- och serietjänst (à la Netflix) 🎬
+**Core**
+- Java 25
+- JavaFX
 
-One-to-Many: En regissör → flera filmer/serier
+**Persistence & Data**
+- JPA & Hibernate
+- MySQL
+- Jackson
 
-Many-to-Many: Användare ↔ Favoritlistor
+**Tooling & Quality**
+- Maven
+- JUnit 5 & AssertJ
+- Log4j2
 
-### Musikspelare 🎵
+---
 
-One-to-Many: En artist → flera album
+## Key Features
 
-Many-to-Many: Album ↔ Spellistor
+**iTunes Search Integration**
+Fetches real-world music data and stores it locally.
 
-### Projekt- och uppgiftshantering 📋
+**Click Wheel Navigation**
+Custom JavaFX interface inspired by the iconic circular control.
 
-One-to-Many: Ett projekt → flera uppgifter
+**Library Management**
+Persistent storage of artists, albums, and tracks using JPA.
 
-Many-to-Many: Uppgifter ↔ Användare
+**Playlist Support**
+Create and manage **Library** and **Favorites** playlists.
 
-### Restaurangbokning 🍽️
+**Audio Previews**
+Built-in media player for listening to song snippets.
 
-One-to-Many: En restaurang → flera bord
+**Database Persistence**
+Repository-based architecture for clean and reliable data access.
 
-Many-to-Many: Gäster ↔ Bokningar
+---
+
+## My Contributions
+
+While this was a collaborative project, my primary responsibilities included:
+
+- **iTunes API Integration**
+  Developed `ItunesApiClient` to handle HTTP requests, JSON parsing, and data normalization.
+
+- **Data Persistence (JPA)**
+  Designed the core entity model (`Artist`, `Album`, `Song`, `Playlist`) and their relational mappings.
+
+- **Repository Layer**
+  Implemented repositories (`ArtistRepository`, `SongRepository`, etc.) to abstract database operations.
+
+- **Database Initialization**
+  Built `DatabaseInitializer` to populate the database with API data on first launch.
+
+---
+
+*Developed as a collaborative project at IT-Högskolan.*
