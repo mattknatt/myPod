@@ -19,6 +19,22 @@ Fetched data is stored locally, allowing users to build and manage their own mus
 
 ---
 
+## Screenshots
+
+<p align="center">
+  <img src="src/main/resources/myPod_startscreen.png" width="200" alt="Start Screen">
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="src/main/resources/myPod_nowPlaying.png" width="200" alt="Now Playing">
+  <br>
+  <img src="src/main/resources/myPod_playlist.png" width="450" alt="Playlist View">
+</p>
+
+<p align="center">
+  <i>The classic Click Wheel interface: Start Screen, Now Playing, and the detailed Playlist views.</i>
+</p>
+
+---
+
 ## Tech Stack
 
 **Core**
